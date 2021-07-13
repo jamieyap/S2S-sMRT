@@ -184,6 +184,13 @@
       "Repository": "CRAN",
       "Hash": "f518ba47713f92d0d603eec7c6888faf"
     },
+    "rootSolve": {
+      "Package": "rootSolve",
+      "Version": "1.8.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "b72e8308aed1f4532732bce14fee94be"
+    },
     "stringi": {
       "Package": "stringi",
       "Version": "1.6.2",

@@ -1,5 +1,5 @@
 library(dplyr)
-set.seed(3857990)
+set.seed(3857234)
 
 # -----------------------------------------------------------------------------
 # Specify data generating parameters
@@ -86,16 +86,22 @@ for(i in 1:N_participants){
     return(this_A_now)
   })
   
+  dat_observed[["A_now"]] <- unlist(dat_observed[["A_now"]])
+  
   dat_observed <- dat_observed %>% 
     select(-tmp_prob_A_now) %>%
     mutate(A_now = replace(A_now, I_now == 0 | decision_point == 1, NA_real_))
   
   # Determine whether indicator for stress/nostress/physically active is missing
   M_now <- rbinom(n = tot_decision_points, size = 1, prob = (1 - prob_missing))
+  Z1_now <- rnorm(n = tot_decision_points)
+  Z2_now <- rnorm(n = tot_decision_points)
   
   # Update data frame
   dat_observed <- dat_observed %>% 
-    mutate(M_now = M_now) %>%
+    mutate(M_now = M_now,
+           Z1_now = Z1_now, 
+           Z2_now = Z2_now) %>%
     mutate(Y_star_now = if_else(M_now==1, Y_now, NA_real_))
   
   list_all <- append(list_all, list(dat_observed))
@@ -104,7 +110,79 @@ for(i in 1:N_participants){
 dat_all <- do.call(rbind, list_all)
 
 # -----------------------------------------------------------------------------
+# Calculate phat(x) and perform checks against the true value p(x)
+# -----------------------------------------------------------------------------
+
+dat_all  <- dat_all %>% 
+  mutate(phat_it_denom_stressed_now = I_now * X_now,
+         phat_it_denom_not_stressed_now = I_now * (1 - X_now))
+
+dat_all  <- dat_all %>% 
+  mutate(phat_it_numer_stressed_now = I_now * X_now * prob_A_now,
+         phat_it_numer_not_stressed_now = I_now * (1 - X_now) * prob_A_now)
+
+# Checks
+dat_all %>%
+  filter(decision_point > 1) %>%
+  group_by(decision_point) %>%
+  summarise(sum(phat_it_denom_stressed_now, na.rm=TRUE)/(N_participants),
+            sum(phat_it_denom_not_stressed_now, na.rm=TRUE)/(N_participants))
+
+dat_all %>%
+  filter(decision_point > 1) %>%
+  group_by(decision_point) %>%
+  summarise(sum(phat_it_numer_stressed_now, na.rm=TRUE)/(N_participants),
+            sum(phat_it_numer_not_stressed_now, na.rm=TRUE)/(N_participants))
+
+
+# True value of the denominator
+conditional_stressed <- r_11*prob_stressed*prob_stressed + r_21*prob_active*prob_stressed + r_31*prob_not_stressed*prob_stressed
+conditional_not_stressed <- r_10*prob_stressed*prob_not_stressed + r_20*prob_active*prob_not_stressed + r_30*prob_not_stressed*prob_not_stressed
+
+print(conditional_stressed)
+print(conditional_not_stressed)
+
+# -----------------------------------------------------------------------------
+# Calculate weight
+# -----------------------------------------------------------------------------
+
+dat_all  <- dat_all %>% 
+  mutate(phat_it_stressed_now = phat_it_numer_stressed_now/phat_it_denom_stressed_now,
+         phat_it_not_stressed_now = phat_it_numer_not_stressed_now/phat_it_denom_not_stressed_now)
+
+dat_phat <- dat_all %>%
+  group_by(id, X_now) %>%
+  summarise(phat_stressed_now = sum(phat_it_numer_stressed_now, na.rm=TRUE)/sum(phat_it_denom_stressed_now, na.rm=TRUE),
+            phat_not_stressed_now = sum(phat_it_numer_not_stressed_now, na.rm=TRUE)/sum(phat_it_denom_not_stressed_now, na.rm=TRUE))
+
+dat_phat <- dat_phat %>% 
+  mutate(phat = if_else(X_now==1, phat_stressed_now, phat_not_stressed_now)) %>%
+  filter(!is.na(X_now)) %>%
+  select(id, X_now, phat)
+
+phat_stressed <- dat_phat %>% filter(X_now==1)
+phat_stressed <- mean(phat_stressed$phat)
+
+phat_not_stressed <- dat_phat %>% filter(X_now==0)
+phat_not_stressed <- mean(phat_not_stressed$phat)
+
+dat_all <- dat_all %>%
+  mutate(weight_now = case_when(
+    X_now==1 & A_now==1 ~ phat_stressed/prob_A_now,
+    X_now==1 & A_now==0 ~ (1-phat_stressed)/(1-prob_A_now),
+    X_now==0 & A_now==1 ~ phat_not_stressed/prob_A_now,
+    X_now==0 & A_now==0 ~ (1-phat_not_stressed)/(1-prob_A_now),
+    TRUE ~ NA_real_
+  ))
+           
+
+# -----------------------------------------------------------------------------
 # Save simulated dataset and data generating parameters
 # -----------------------------------------------------------------------------
+dat_all <- dat_all %>%
+  select(id, decision_point, 
+         I_now, Y_now, X_now, prob_A_now, A_now, 
+         M_now, Y_star_now, weight_now, Z1_now, Z2_now)
+
 save(dat_all, list_datagen_params, file = "simulated_datasets/simdat.RData")
 
