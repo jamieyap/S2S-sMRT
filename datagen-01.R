@@ -89,15 +89,9 @@ for(i in 1:N_participants){
   
   dat_observed[["M_now"]] <- unlist(dat_observed[["M_now"]])
   
-  # These are variables which have no relation to the probability of missingness
-  Z1_now <- rnorm(n = tot_decision_points)
-  Z2_now <- rnorm(n = tot_decision_points)
-  
   # Update data frame
   dat_observed <- dat_observed %>% 
-    mutate(M_now = M_now,
-           Z1_now = Z1_now, 
-           Z2_now = Z2_now) %>%
+    mutate(M_now = M_now) %>%
     mutate(Y_star_now = if_else(M_now==1, Y_now, NA_real_))
   
   list_all <- append(list_all, list(dat_observed))
@@ -159,8 +153,7 @@ dat_all <- dat_all %>%
 dat_all <- dat_all %>%
   select(id, decision_point, 
          I_now, Y_now, X_now, prob_A_now, A_now, cA_now,
-         M_now, Y_star_now, W1_now, 
-         Z1_now, Z2_now)
+         M_now, Y_star_now, W1_now)
 
-save(dat_all, list_datagen_params, file = "simulated_datasets/simdat.RData")
+save(dat_all, list_datagen_params, file = "simulated_datasets/simdat01.RData")
 

@@ -1,7 +1,26 @@
 library(dplyr)
 library(rootSolve)
 
-load(file = "simulated_datasets/simdat.RData")
+# Change to appropriate RData file
+load(file = "simulated_datasets/simdat02.RData")
+
+# -----------------------------------------------------------------------------
+# Input parameters specified by the end-user
+# -----------------------------------------------------------------------------
+
+# total number of participants
+N <- length(unique(dat_all$id)) 
+# total number of possible decision points within a participant-day
+tot_dp <- length(unique(dat_all$decision_point))
+# the maximum value of m (must use m>0)
+window_length <- 3 
+# do not count intercept term
+num_covariates_miss_data_model <- 1 
+# note that there are instances when we might want to exclude the first 
+# few decision points from estimation, e.g., if we require variables that
+# characterize some aspect of past history up to the current decision point
+# simply set last_history_dp=0 to avoid this behavior
+last_history_dp <- 0
 
 # -----------------------------------------------------------------------------
 # Helper functions
@@ -17,24 +36,6 @@ ConstructLaggedVariable <- function(dat, prefix, max_look_ahead){
   
   return(dat)
 }
-
-# -----------------------------------------------------------------------------
-# Input parameters specified by the end-user
-# -----------------------------------------------------------------------------
-
-# total number of participants
-N <- length(unique(dat_all$id)) 
-# total number of possible decision points within a participant-day
-tot_dp <- length(unique(dat_all$decision_point))
-# the maximum value of m (must use m>0)
-window_length <- 3 
-# do not count intercept term
-num_covariates_miss_data_model <- 0 
-# note that there are instances when we might want to exclude the first 
-# few decision points from estimation, e.g., if we require variables that
-# characterize some aspect of past history up to the current decision point
-# simply set last_history_dp=0 to avoid this behavior
-last_history_dp <- 0
 
 # -----------------------------------------------------------------------------
 # For each decision point t, construct missing data indicators for t+m
@@ -126,6 +127,8 @@ use_params[["window_length"]] <- window_length
 # psi and eta are parameters in our model for the missing data indicator
 # We add one to num_covariates_miss_data_model in order to 
 # account for the intercept term
+# Note: as of now, the code implementation expects no NA values in 
+# M_now and all variables prefixed by M_now, e.g., M_now_1, M_now_2, ...
 use_params[["dim_psi"]] <- 1 + num_covariates_miss_data_model
 use_params[["dim_eta"]] <- use_params[["dim_psi"]]
 
@@ -164,8 +167,7 @@ use_params[["list_W_matrix"]] <- lapply(list_dat_all, function(curr_dat){
 })
 
 use_params[["list_Z_matrix"]] <- lapply(list_dat_all, function(curr_dat){
-  out_matrix <- curr_dat %>% 
-    mutate(ones=1) %>% select(ones) %>% t(.) 
+  out_matrix <- curr_dat %>% mutate(ones=1) %>% select(ones, starts_with("Z")) %>% t(.)
   return(out_matrix)
 })
 
@@ -196,7 +198,7 @@ EstimatingEquationMissingData <- function(theta, params){
     M <- params[["list_M_matrix"]][[idx_participant]]
     
     for(idx_dp in 1:max_count_dp){
-      cumsum_Utm <- 0
+      cumsum_Utm <- as.matrix(rep(0, dim_psi + dim_eta))
       
       if(I[,idx_dp] == 1){
         
@@ -219,6 +221,7 @@ EstimatingEquationMissingData <- function(theta, params){
   
   average_cumsum_Utm <- do.call(cbind, list_cumsum_Utm)
   average_cumsum_Utm <- rowMeans(average_cumsum_Utm)
+  average_cumsum_Utm <- c(average_cumsum_Utm)
   
   return(average_cumsum_Utm)
 }
@@ -228,20 +231,16 @@ EstimatingEquationMissingData <- function(theta, params){
 # -----------------------------------------------------------------------------
 
 # Initial value of theta
-theta_init <- rep(1, use_params[["dim_psi"]] + use_params[["dim_eta"]])
+theta_init <- rep(0, use_params[["dim_psi"]] + use_params[["dim_eta"]])
 
-# Estimate eta and theta
+# Estimate psi and eta
 result <- multiroot(f = EstimatingEquationMissingData, start = theta_init, params = use_params)
 
 # Print results on raw scale
 print(result$root)
 
-# Print result on exp scale: A=0
-# Output should be close to the value of prob_missing
-print(exp(result$root[1]))
+# Print result on exp scale
+print(exp(result$root))
 
-# Print result on exp scale: A=1
-# Output should be close to the value of prob_missing
-print(exp(result$root[1] + result$root[2]))
 
 
