@@ -11,10 +11,10 @@
   "Packages": {
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.3-4",
+      "Version": "1.3-3",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "4ed05e9c9726267e4a5872e09c04587c"
+      "Hash": "df57c82e79600601287edfdcef92c2d6"
     },
     "lattice": {
       "Package": "lattice",
@@ -32,10 +32,10 @@
     },
     "rootSolve": {
       "Package": "rootSolve",
-      "Version": "1.8.2.2",
+      "Version": "1.8.2.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "04769b4916d6d20d7c37f992472c5c1b"
+      "Hash": "d62eb8dc158952de565c611ea8498e4c"
     }
   }
 }

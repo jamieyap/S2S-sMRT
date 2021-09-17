@@ -1,17 +1,17 @@
 library(Matrix)
 library(parallel)
 library(rootSolve)
-path_staged_data <- Sys.getenv("path_staged_data")
+source("paths.R")
 load(file.path(path_staged_data, "mcar.RData"))
 
 # -----------------------------------------------------------------------------
 # Define estimating equation
 # -----------------------------------------------------------------------------
 
-ModelEERho <- function(values, dat){
-  rho0 <- values[1]
-  rho1 <- values[2]
-  delta <- ifelse(dat[,"Xk"]==0, dat[,"probAk"] - rho0, dat[,"probAk"] - rho1)
+ModelEERho <- function(dat, values){
+  RHO0 <- values[1]
+  RHO1 <- values[2]
+  delta <- ifelse(dat[,"Xk"]==0, dat[,"probAk"] - RHO0, dat[,"probAk"] - RHO1)
   dat <- cbind(dat, delta)
   
   N_participants <- length(unique(dat[,"id"]))
@@ -36,14 +36,33 @@ ModelEERho <- function(values, dat){
 # Get roots using each simulated dataset
 # -----------------------------------------------------------------------------
 
-N_sim <- length(simlist)
-list_allroots_ee_rho <- list()
+cl <- makeCluster(getOption("cl.cores", detectCores()-1))
+clusterExport(cl, c("ModelEERho","simlist"))
+clusterSetRNGStream(cl = cl, iseed = 174125)
+clusterEvalQ(cl, {
+  library(Matrix)
+  library(rootSolve)
+})
 
-for(idx_sim in 1:N_sim){
-  dat <- simlist[[idx_sim]]
-  allroots_ee_rho <- multiroot(f = ModelEERho, start = c(0.1, 0.1), dat = dat)
-  list_allroots_ee_rho <- append(list_allroots_ee_rho, list(allroots_ee_rho))
-}
+list_allroots_ee_rho <- parLapply(cl = cl, 
+                                  X = simlist,
+                                  fun = function(current_simdat){
+                                    
+                                    allroots_ee <- multiroot(f = ModelEERho, 
+                                                             start = c(0.1, 0.1), 
+                                                             dat = current_simdat)
+                                    
+                                    pardat <- c(as.numeric(current_simdat[1,"simnum"]), 
+                                                allroots_ee[["root"]])
+                                    
+                                    return(pardat)
+                                  })
 
-save(list_allroots_ee_rho, file = file.path(path_staged_data, "list_allroots_ee_rho.RData"))
+stopCluster(cl)
+
+allroots_ee_rho <- do.call(rbind, list_allroots_ee_rho)
+dimnames(allroots_ee_rho) <- list(NULL, c("simnum", "RHO0", "RHO1"))
+allroots_ee_rho <- Matrix::Matrix(allroots_ee_rho)
+
+save(allroots_ee_rho, file = file.path(path_staged_data, "allroots_ee_rho.RData"))
 
