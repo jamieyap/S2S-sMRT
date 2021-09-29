@@ -144,4 +144,4 @@ allroots_ee_missdat <- Matrix::Matrix(allroots_ee_missdat)
 # Save output
 # -----------------------------------------------------------------------------
 save(allroots_ee_missdat,
-     file = file.path(path_staged_data, "allroots_ee_missdat.RData"))
+     file = file.path(path_simulated_data, "allroots_ee_missdat.RData"))

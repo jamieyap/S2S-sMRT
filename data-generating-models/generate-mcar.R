@@ -123,5 +123,5 @@ stopCluster(cl)
 # Save output
 # -----------------------------------------------------------------------------
 save(simlist,
-     file = file.path(path_staged_data, "mcar.RData"))
+     file = file.path(path_simulated_data, "mcar.RData"))
 

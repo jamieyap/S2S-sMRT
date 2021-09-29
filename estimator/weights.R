@@ -1,8 +1,8 @@
 library(Matrix)
 source("paths.R")
 source("params.R")
-load(file.path(path_staged_data, "allroots_ee_rho.RData"))
-load(file.path(path_staged_data, "mcar.RData"))
+load(file.path(path_simulated_data, "allroots_ee_rho.RData"))
+load(file.path(path_simulated_data, "mcar.RData"))
 
 # -----------------------------------------------------------------------------
 # Commentary on params required from params.R
@@ -122,5 +122,5 @@ weightedsimlist <- simlist
 # Save output
 # -----------------------------------------------------------------------------
 save(weightedsimlist,
-     file = file.path(path_staged_data, "weightedsimlist.RData"))
+     file = file.path(path_simulated_data, "weightedsimlist.RData"))
 

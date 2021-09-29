@@ -2,7 +2,7 @@ library(Matrix)
 library(parallel)
 library(rootSolve)
 source("paths.R")
-load(file.path(path_staged_data, "mcar.RData"))
+load(file.path(path_simulated_data, "mcar.RData"))
 
 # -----------------------------------------------------------------------------
 # Define estimating equation
@@ -64,5 +64,5 @@ allroots_ee_rho <- do.call(rbind, list_allroots_ee_rho)
 dimnames(allroots_ee_rho) <- list(NULL, c("simnum", "RHO0", "RHO1"))
 allroots_ee_rho <- Matrix::Matrix(allroots_ee_rho)
 
-save(allroots_ee_rho, file = file.path(path_staged_data, "allroots_ee_rho.RData"))
+save(allroots_ee_rho, file = file.path(path_simulated_data, "allroots_ee_rho.RData"))
 

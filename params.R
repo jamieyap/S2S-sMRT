@@ -2,7 +2,7 @@
 # Specify data generating parameters: Volume of data to generate
 # -----------------------------------------------------------------------------
 
-N_sim <- 100  # Total number of simulated datasets
+N_sim <- 1  # Total number of simulated datasets
 N_participants <- 100  # Total number of participants
 tot_decision_points <- 7200  # Total number of decision points
 prob_missing <- 0.20 # We will simulate missing-completely-at-random data
