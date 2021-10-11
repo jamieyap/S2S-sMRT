@@ -1,8 +1,8 @@
 library(Matrix)
 source("paths.R")
 source("params.R")
-load(file.path(path_simulated_data, "allroots_ee_rho.RData"))
-load(file.path(path_simulated_data, "mcar.RData"))
+load(file.path(path_staged_data, "allroots_ee_rho.RData"))
+load(file.path(path_staged_data, "mcar.RData"))
 
 # -----------------------------------------------------------------------------
 # Commentary on params required from params.R
@@ -12,7 +12,7 @@ load(file.path(path_simulated_data, "mcar.RData"))
 # tot_excursion_length
 
 # -----------------------------------------------------------------------------
-# Primitive functions for calculating weights
+# Primitive functions for calculating weights for one particular participant
 # -----------------------------------------------------------------------------
 
 WeightParticipant <- function(dat_person,
@@ -22,7 +22,8 @@ WeightParticipant <- function(dat_person,
   
   # Create placeholder columns
   dat_person <- cbind(dat_person, Wk = c(NA), W0k = c(NA), W1k = c(NA))
-  list_pi_person <- list()
+  # 'pi' stands for the Greek letter used to represent 'product'
+  list_pi_person <- list() 
   
   # Step 1: Calculate I_{t+m} for all m = 1, 2, 3, ..., tot_excursion_length
   columns_copied <- rep(list(dat_person[,"Ik"]), tot_excursion_length)
@@ -85,6 +86,7 @@ WeightParticipant <- function(dat_person,
   
   # Step 6: Finally, put everything together
   dat_person[,"Wk"] <- ((dat_person[,"W1k"])^(dat_person[,"Xk"])) * ((dat_person[,"W0k"])^(1-dat_person[,"Xk"]))
+  # Note that Wk is coded as 'NA' if Ik==0 (i.e., not available at current decision-point)
   dat_person[,"Wk"] <- ifelse(dat_person[,"Ik"]==0, NA, dat_person[,"Wk"])
   dat_person <- dat_person[, !(colnames(dat_person) %in% c("W0k", "W1k"))]
   
@@ -104,6 +106,7 @@ for(idx_sim in 1:N_sim){
   
   list_current <- list()
   for(idx_person in 1:N_participants){
+    # Take subset of rows corresponding to one particular participant
     these_rows <- (dat[,"id"] == idx_person)
     dat_person <- dat[these_rows,]
     weighteddat_person <- WeightParticipant(dat_person = dat_person,
@@ -122,5 +125,5 @@ weightedsimlist <- simlist
 # Save output
 # -----------------------------------------------------------------------------
 save(weightedsimlist,
-     file = file.path(path_simulated_data, "weightedsimlist.RData"))
+     file = file.path(path_staged_data, "weightedsimlist.RData"))
 

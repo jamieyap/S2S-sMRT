@@ -50,6 +50,7 @@ ModelEEObservedDataIndicator <- function(dat,
   running_total_lower_block <- 0
   
   for(idx_person in 1:N_participants){
+    # Take subset of rows corresponding to one particular participant
     these_rows <- (dat[,"id"] == idx_person)
     dat_person <- dat[these_rows,]
     
@@ -123,13 +124,16 @@ list_allroots_ee_missdat <- parLapply(cl = cl,
                                       fun = function(current_simdat){
                                     
                                         allroots_ee <- multiroot(f = ModelEEObservedDataIndicator, 
-                                                                 start = c(0.1, 0.1), 
+                                                                 start = c(0,0), 
                                                                  dat = current_simdat,
                                                                  tot_decision_points = tot_decision_points,
                                                                  tot_excursion_length = tot_excursion_length)
                                         
-                                        pardat <- c(as.numeric(current_simdat[1,"simnum"]), 
-                                                    allroots_ee[["root"]])
+                                        simnum <- as.numeric(current_simdat[1,"simnum"])
+                                        # 1st element of estimates would be \hat{PSI0}
+                                        # 2nd element of estimates would be \hat{ETA0}
+                                        estimates <- allroots_ee[["root"]]
+                                        pardat <- c(simnum, estimates)
                                         
                                         return(pardat)
                                         })
@@ -137,11 +141,18 @@ list_allroots_ee_missdat <- parLapply(cl = cl,
 stopCluster(cl)
 
 allroots_ee_missdat <- do.call(rbind, list_allroots_ee_missdat)
-dimnames(allroots_ee_missdat) <- list(NULL, c("simnum", "ETA0", "PSI0"))
+dimnames(allroots_ee_missdat) <- list(NULL, c("simnum", "PSI0", "ETA0"))
 allroots_ee_missdat <- Matrix::Matrix(allroots_ee_missdat)
 
 # -----------------------------------------------------------------------------
 # Save output
 # -----------------------------------------------------------------------------
+
+print(exp(allroots_ee_missdat[,"PSI0"]))
+
+print(exp(allroots_ee_missdat[,"PSI0"] + allroots_ee_missdat[,"ETA0"]))
+
 save(allroots_ee_missdat,
-     file = file.path(path_simulated_data, "allroots_ee_missdat.RData"))
+     file = file.path(path_staged_data, "allroots_ee_missdat.RData"))
+
+

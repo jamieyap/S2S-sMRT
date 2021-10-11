@@ -2,10 +2,10 @@
 # Specify data generating parameters: Volume of data to generate
 # -----------------------------------------------------------------------------
 
-N_sim <- 1  # Total number of simulated datasets
-N_participants <- 100  # Total number of participants
-tot_decision_points <- 7200  # Total number of decision points
-prob_missing <- 0.20 # We will simulate missing-completely-at-random data
+N_sim <- 5  # Total number of simulated datasets
+N_participants <- 75  # Total number of participants
+tot_decision_points <- 720*1  # Total number of decision points
+prob_missing <- 0.30 # We will simulate missing-completely-at-random data
 
 # -----------------------------------------------------------------------------
 # Specify data generating parameters: Parameters governing the relationship
@@ -24,6 +24,5 @@ prob_coin_flip_not_stressed <- 0.3
 # -----------------------------------------------------------------------------
 # Specify data analysis parameters
 # -----------------------------------------------------------------------------
-tot_excursion_length <- 10  # Total length of excursion, e.g., 120 decision points after the k^{th} decision point
-
+tot_excursion_length <- 5  # Total length of excursion, e.g., 120 decision points after the k^{th} decision point
 

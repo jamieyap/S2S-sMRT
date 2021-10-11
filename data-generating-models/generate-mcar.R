@@ -45,19 +45,13 @@ GenerateParticipant <- function(participant_id,
   is_not_stressed_now <- dat_sample[3,]
   Yk <- 1*(is_stressed_now==1) + 2*(is_active_now==1) + 3*(is_not_stressed_now)
   
-  # Create observed data indicator
-  Ok <- rbinom(n = tot_decision_points, size = 1, prob = (1-prob_missing))
-  
-  # Which among the Yk's will actually be observed for this participant?
-  Ystark <- ifelse(Ok==1, Yk, NA_real_)
+  # Create stratification variable
+  Xk <- Yk
+  Xk <- replace(Xk, Xk==2, NA_real_)
+  Xk <- replace(Xk, Xk==3, 0)
   
   # Create treatment eligibility indicator 
-  Ik <- ifelse((Ok==1) * ((Yk==1)|(Yk==3)), 1, 0)
-  
-  # Create stratification variable
-  Xk <- ifelse(Yk==2, NA_real_, Yk)
-  Xk <- replace(Xk, Xk==3, 0)
-  Xk <- replace(Xk, Ok==0, NA_real_)
+  Ik <- ifelse(Yk==2, 0, 1)
   
   # Simulate randomization assignment
   probAk <- ifelse(Xk==1, prob_coin_flip_stressed, prob_coin_flip_not_stressed)
@@ -71,12 +65,21 @@ GenerateParticipant <- function(participant_id,
   )
   Ak <- unlist(Ak)
   
+  # Create observed data indicator
+  # The manner by which we generate Ok is independent of all
+  # the other variables, i.e., MCAR
+  Ok <- rbinom(n = tot_decision_points, size = 1, prob = (1-prob_missing))
+  
+  # Which among the Yk's will actually be observed for this participant?
+  Yobsk <- ifelse(Ok==1, Yk, NA_real_)
+  Xobsk <- ifelse(Ok==1, Xk, NA_real_)
+  
   # Create other remaining variables
   dp <- 1:tot_decision_points
   id <- rep(x = participant_id, times = tot_decision_points)
   
   # Store simulated data into a Matrix
-  dat_participant <- Matrix::Matrix(data = cbind(id, dp, Yk, Ok, Ystark, Xk, Ik, probAk, Ak))
+  dat_participant <- Matrix::Matrix(data = cbind(id, dp, Yk, Xk, Ik, probAk, Ak, Ok, Yobsk, Xobsk))
   
   return(dat_participant)
 }
@@ -123,5 +126,5 @@ stopCluster(cl)
 # Save output
 # -----------------------------------------------------------------------------
 save(simlist,
-     file = file.path(path_simulated_data, "mcar.RData"))
+     file = file.path(path_staged_data, "mcar.RData"))
 
