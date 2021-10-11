@@ -85,7 +85,14 @@ WeightParticipant <- function(dat_person,
   dat_person[,"W1k"] <- dat_person[,"W1k"] * pi_overall
   
   # Step 6: Finally, put everything together
-  dat_person[,"Wk"] <- ((dat_person[,"W1k"])^(dat_person[,"Xk"])) * ((dat_person[,"W0k"])^(1-dat_person[,"Xk"]))
+  # Note: Knowledge of Xk is necessary to know whether RHO0 or RHO1 must be used in Wk
+  # However, it is possible for Kk to me missing when Ik==1
+  # 
+  # Note: How is Wk represented in the simulated dataset, particularly when...
+  # (i) Ik==1 and Xk is missing? (ii) Ik==0?
+  #
+  # If Ik==1 and Xk is missing, Wk will take on a missing value as well
+  dat_person[,"Wk"] <- ((dat_person[,"W1k"])^(dat_person[,"Xobsk"])) * ((dat_person[,"W0k"])^(1-dat_person[,"Xobsk"]))
   # Note that Wk is coded as 'NA' if Ik==0 (i.e., not available at current decision-point)
   dat_person[,"Wk"] <- ifelse(dat_person[,"Ik"]==0, NA, dat_person[,"Wk"])
   dat_person <- dat_person[, !(colnames(dat_person) %in% c("W0k", "W1k"))]

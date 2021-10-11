@@ -27,8 +27,8 @@ GenerateParticipant <- function(participant_id,
                                 tot_decision_points,
                                 prob_missing,
                                 prob_stressed,
-                                prob_active,
                                 prob_not_stressed,
+                                prob_active,
                                 prob_coin_flip_stressed,
                                 prob_coin_flip_not_stressed){
   
@@ -36,22 +36,25 @@ GenerateParticipant <- function(participant_id,
   dat_sample <- rmultinom(n = tot_decision_points, 
                           size = 1, 
                           prob = c(prob_stressed, 
-                                   prob_active, 
-                                   prob_not_stressed)
+                                   prob_not_stressed,
+                                   prob_active)
                           )
   
   is_stressed_now <- dat_sample[1,] 
-  is_active_now <- dat_sample[2,] 
-  is_not_stressed_now <- dat_sample[3,]
-  Yk <- 1*(is_stressed_now==1) + 2*(is_active_now==1) + 3*(is_not_stressed_now)
+  is_not_stressed_now <- dat_sample[2,]
+  is_active_now <- dat_sample[3,] 
+  
+  Yk <- 1*(is_stressed_now==1) + 2*(is_not_stressed_now) + 3*(is_active_now==1)
   
   # Create stratification variable
   Xk <- Yk
-  Xk <- replace(Xk, Xk==2, NA_real_)
-  Xk <- replace(Xk, Xk==3, 0)
+  # When classification is 'physically active', set the value of Xk to be NA
+  Xk <- replace(Xk, Xk==3, NA_real_)  
+  # Complete construction of the variable Xk
+  Xk <- replace(Xk, Xk==2, 0)
   
   # Create treatment eligibility indicator 
-  Ik <- ifelse(Yk==2, 0, 1)
+  Ik <- ifelse(Yk==3, 0, 1)
   
   # Simulate randomization assignment
   probAk <- ifelse(Xk==1, prob_coin_flip_stressed, prob_coin_flip_not_stressed)
@@ -96,8 +99,8 @@ clusterExport(cl, c("GenerateParticipant",
                     "tot_decision_points",
                     "prob_missing",
                     "prob_stressed",
-                    "prob_active",
                     "prob_not_stressed",
+                    "prob_active",
                     "prob_coin_flip_stressed",
                     "prob_coin_flip_not_stressed"))
 
@@ -109,8 +112,8 @@ for(i in 1:N_sim){
                       tot_decision_points = tot_decision_points,
                       prob_missing = prob_missing,
                       prob_stressed = prob_stressed,
-                      prob_active = prob_active,
                       prob_not_stressed = prob_not_stressed,
+                      prob_active = prob_active,
                       prob_coin_flip_stressed = prob_coin_flip_stressed,
                       prob_coin_flip_not_stressed = prob_coin_flip_not_stressed)
   

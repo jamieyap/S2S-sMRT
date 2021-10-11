@@ -25,7 +25,10 @@ for(idx_sim in 1:N_sim){
   RHO0 <- allroots_ee_rho[idx_sim,"RHO0"]
   RHO1 <- allroots_ee_rho[idx_sim,"RHO1"]
   
-  cAk <- ifelse(dat[,"Xk"]==0, 
+  # Note: If Ik==1, it is possible for Xk to be a missing value
+  # Note: If Xobsk is missing (i.e., has a value of NA)
+  # then cAk will take on a missing value (i.e., NA) as well
+  cAk <- ifelse(dat[,"Xobsk"]==0, 
                 dat[,"Ak"] - RHO0,
                 dat[,"Ak"] - RHO1)
   
@@ -54,7 +57,9 @@ ModelEEObservedDataIndicator <- function(dat,
     these_rows <- (dat[,"id"] == idx_person)
     dat_person <- dat[these_rows,]
     
-    # Step 1: Calculate O_{t+m} for all m = 1, 2, 3, ..., tot_excursion_length
+    # Step 1: Calculate O_{k+m} for all m = 1, 2, 3, ..., tot_excursion_length
+    # First, we create tot_excursion_length number of copes of the column Ok
+    # We will use each copy as a starting point to calculate O_{k+m}
     columns_copied <- rep(list(dat_person[,"Ok"]), tot_excursion_length)
     columns_rolled <- mapply(FUN = tail, 
                              x = columns_copied, 
@@ -67,36 +72,73 @@ ModelEEObservedDataIndicator <- function(dat,
     dimnames(columns_rolled) <- list(NULL, paste("Ok", "plus", 1:tot_excursion_length, sep="_"))
     
     # Step 2: Work with upper block
+    # Note: Currently, mat_excursion_upper_block is a TxM-dimensional matrix
     mat_excursion_upper_block <- apply(X = columns_rolled,
                                        MARGIN = 2,
                                        FUN = function(curr_col, 
                                                       psi = PSI0,
                                                       eta = ETA0,
                                                       thisdat = dat_person){
-                                         val <- thisdat[,"Ik"] * thisdat[,"Wk"] * (exp(-thisdat[,"Ak"] * eta) * curr_col - exp(-psi))
+                                         
+                                         # Note what is held constant in the calculation of val and what is varied
+                                         # Ik, Wk, Ak, cAk are held constant
+                                         # curr_col is varied
+                                         val <- thisdat[,"Ik"] * thisdat[,"Wk"] * (exp(-thisdat[,"Ak"] * eta) * curr_col - exp(psi))
                                          return(val)
                                        })
     
-    these_rows <- (dat_person[,"Ik"]==0)
-    mat_excursion_upper_block[these_rows,] <- rep(0, tot_excursion_length)
-    Sk_upper_block <- rowSums(mat_excursion_upper_block[1:(tot_decision_points - tot_excursion_length),])
+    # Note: row names will be transformed to a character value (i.e., will not remain a numeric value)
+    dimnames(mat_excursion_upper_block)[[1]] <- (1:tot_decision_points)
+    all_row_names <- dimnames(mat_excursion_upper_block)[[1]]
+    valid_row_names <- paste(1:(tot_decision_points - tot_excursion_length))
+    valid_decision_points <- (all_row_names %in% valid_row_names)
+    
+    # Determine which rows (i.e., which among t=1,2,3,...,T) to use in the sum for the upper block
+    keep_these_rows <- (dat_person[,"Ik"]==1 & dat_person[,"Ok"]==1)
+    
+    # Now, mat_excursion_upper_block is a SXM-dimensional matrix, where S<=T
+    mat_excursion_upper_block <- mat_excursion_upper_block[valid_decision_points & keep_these_rows,]
+    
+    # First, sum across m=1,2,3,...,M (these are the columns of mat_excursion_upper_block)
+    Sk_upper_block <- rowSums(mat_excursion_upper_block)
+    # Next, sum across t=1,2,3,...,T (some decision points t would have been excluded at this point)
     upper_block <- sum(Sk_upper_block)
+    # Update the running total for the upper block
     running_total_upper_block <- running_total_upper_block + upper_block
     
     # Step 3: Work with lower block
+    # Note: Currently, mat_excursion_lower_block is a TXM-dimensional matrix
     mat_excursion_lower_block <- apply(X = columns_rolled,
                                        MARGIN = 2,
                                        FUN = function(curr_col,
                                                       psi = PSI0,
                                                       eta = ETA0,
                                                       thisdat = dat_person){
-                                         val <- thisdat[,"Ik"] * thisdat[,"Wk"] * (exp(-thisdat[,"Ak"] * eta) * curr_col - exp(-psi)) * thisdat[,"cAk"]
+                                         
+                                         # Note what is held constant in the calculation of val and what is varied
+                                         # Ik, Wk, Ak, cAk are held constant
+                                         # curr_col is varied
+                                         val <- thisdat[,"Ik"] * thisdat[,"Wk"] * (exp(-thisdat[,"Ak"] * eta) * curr_col - exp(psi)) * thisdat[,"cAk"]
                                          return(val)
                                        })
     
-    mat_excursion_lower_block[these_rows,] <- rep(0, tot_excursion_length)
-    Sk_lower_block <- rowSums(mat_excursion_lower_block[1:(tot_decision_points - tot_excursion_length),])
+    # Note: row names will be transformed to a character value (i.e., will not remain a numeric value)
+    dimnames(mat_excursion_lower_block)[[1]] <- (1:tot_decision_points)
+    all_row_names <- dimnames(mat_excursion_lower_block)[[1]]
+    valid_row_names <- paste(1:(tot_decision_points - tot_excursion_length))
+    valid_decision_points <- (all_row_names %in% valid_row_names)
+    
+    # Determine which rows (i.e., which among t=1,2,3,...,T) to use in the sum for the lower block
+    keep_these_rows <- (dat_person[,"Ik"]==1 & dat_person[,"Ok"]==1)
+    
+    # Now, mat_excursion_lower_block is a SXM-dimensional matrix, where S<=T
+    mat_excursion_lower_block <- mat_excursion_lower_block[valid_decision_points & keep_these_rows,]
+    
+    # First, sum across m=1,2,3,...,M (these are the columns of mat_excursion_lower_block)
+    Sk_lower_block <- rowSums(mat_excursion_lower_block)
+    # Next, sum across t=1,2,3,...,T (some decision points t would have been excluded at this point)
     lower_block <- sum(Sk_lower_block)
+    # Update the running total for the lower block
     running_total_lower_block <- running_total_lower_block + lower_block
   }
   

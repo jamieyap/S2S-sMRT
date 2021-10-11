@@ -31,7 +31,7 @@ ModelEERho <- function(dat, values){
     # For this particular person, select time-points for which they are available
     # and further, among available time-points, select only those time-points
     # for which we have observed data (i.e., not missing)
-    select_these_rows <- ((dat_current_person[,"Ik"]==1) & (!is.na(dat_current_person[,"Xobsk"])))
+    select_these_rows <- ((dat_current_person[,"Ik"]==1) & (dat_current_person[,"Ok"]==1))
     dat_current_person <- dat_current_person[which(select_these_rows),]
     
     # Afterwards, calculate delta corresponding to decision-points
