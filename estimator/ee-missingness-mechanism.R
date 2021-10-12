@@ -21,7 +21,6 @@ load(file.path(path_staged_data, "weightedsimlist.RData"))
 for(idx_sim in 1:N_sim){
   
   dat <- weightedsimlist[[idx_sim]]
-  N_participants <- length(unique(dat[,"id"]))
   RHO0 <- allroots_ee_rho[idx_sim,"RHO0"]
   RHO1 <- allroots_ee_rho[idx_sim,"RHO1"]
   
@@ -189,6 +188,8 @@ allroots_ee_missdat <- Matrix::Matrix(allroots_ee_missdat)
 # -----------------------------------------------------------------------------
 # Save output
 # -----------------------------------------------------------------------------
+
+print(allroots_ee_missdat)
 
 print(exp(allroots_ee_missdat[,"PSI0"]))
 

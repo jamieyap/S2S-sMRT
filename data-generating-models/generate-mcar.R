@@ -92,7 +92,7 @@ GenerateParticipant <- function(participant_id,
 # -----------------------------------------------------------------------------
 
 cl <- makeCluster(getOption("cl.cores", detectCores()-1))
-clusterSetRNGStream(cl = cl, iseed = 174125)
+clusterSetRNGStream(cl = cl, iseed = 73104273)
 clusterExport(cl, c("GenerateParticipant",
                     "N_participants",
                     "N_sim",
