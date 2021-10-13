@@ -6,6 +6,7 @@ this_string <- "Sense2Stop REDCap_Consented Participants_Demographics Surveys As
 dat_baseline <- read.csv(file.path(path_raw_data_baseline, this_string))
 
 dat_masterlist <- dat_baseline %>%
+  filter(record_id >= 200) %>%
   select(record_id, day1_date) %>%
   mutate(participant_id = as.numeric(record_id),
          begin_study_hrts = mdy_hm(day1_date)) %>%

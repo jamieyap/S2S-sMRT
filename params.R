@@ -12,17 +12,17 @@ prob_missing <- 0.30 # We will simulate missing-completely-at-random data
 # among random variables
 # -----------------------------------------------------------------------------
 
-prob_stressed <- 0.40
+prob_stressed <- 0.49
 prob_not_stressed <- 0.50
-prob_active <- 0.10
+prob_active <- 0.01
 
 # Constant throughout all decision points classified as stressed
-prob_coin_flip_stressed <- 0.8 
+prob_coin_flip_stressed <- 0.001
 # Constant throughout all decision points classified as not stressed
-prob_coin_flip_not_stressed <- 0.5
+prob_coin_flip_not_stressed <- 0.001
 
 # -----------------------------------------------------------------------------
 # Specify data analysis parameters
 # -----------------------------------------------------------------------------
-tot_excursion_length <- 5  # Total length of excursion, e.g., 120 decision points after the k^{th} decision point
+tot_excursion_length <- 120  # Total length of excursion, e.g., 120 decision points after the k^{th} decision point
 
