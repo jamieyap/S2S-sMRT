@@ -13,5 +13,13 @@ rm(list = ls())
 source("setup-curated-datasets/get-activity-data.R")
 rm(list = ls())
 
+source("setup-curated-datasets/check-day-start-times.R")
+rm(list = ls())
+
+source("setup-curated-datasets/check-event-classifications.R")
+rm(list = ls())
+
 source("setup-curated-datasets/create-analysis-dataset.R")
 rm(list = ls())
+
+

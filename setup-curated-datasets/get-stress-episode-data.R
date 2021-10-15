@@ -92,7 +92,7 @@ dat_all <- dat_all %>%
 # merging with other data sources
 # -----------------------------------------------------------------------------
 
-dat_stress_episodes <- dat_all
+parsed_dat_stress_episodes <- dat_all
 
-save(dat_stress_episodes, file = file.path(path_staged_data, "dat_stress_episodes.RData"))
+save(parsed_dat_stress_episodes, file = file.path(path_staged_data, "parsed_dat_stress_episodes.RData"))
 

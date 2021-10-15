@@ -56,7 +56,7 @@ dat_all <- dat_all %>% filter(!duplicated(.[,c("participant_id", "date_utc")]))
 # -----------------------------------------------------------------------------
 
 dat_all <- rename_with(dat_all, ~paste("day_start_", .x, sep=""), starts_with("time_"))
-dat_day_start <- dat_all
+parsed_dat_day_start <- dat_all
 
-save(dat_day_start, file = file.path(path_staged_data, "dat_day_start.RData"))
+save(parsed_dat_day_start, file = file.path(path_staged_data, "parsed_dat_day_start.RData"))
 

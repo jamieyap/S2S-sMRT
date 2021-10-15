@@ -269,6 +269,7 @@ dat_rand <- dat_rand %>%
 # -----------------------------------------------------------------------------
 
 dat_rand <- rename_with(dat_rand, ~paste("rand_", .x, sep=""), starts_with("time_"))
+parsed_dat_rand <- dat_rand
 
-save(dat_rand, file = file.path(path_staged_data, "dat_rand.RData"))
+save(parsed_dat_rand, file = file.path(path_staged_data, "parsed_dat_rand.RData"))
 
