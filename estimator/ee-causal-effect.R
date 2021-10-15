@@ -230,7 +230,7 @@ allroots_ee_rr <- Matrix::Matrix(allroots_ee_rr)
 
 print(allroots_ee_rr)
 
-save(allroots_ee_rr,
+save(allroots_ee_rr, all_params,
      file = file.path(path_staged_data, "allroots_ee_rr.RData"))
 
 

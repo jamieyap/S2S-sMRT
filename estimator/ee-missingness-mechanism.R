@@ -195,7 +195,7 @@ print(exp(allroots_ee_missdat[,"PSI0"]))
 
 print(exp(allroots_ee_missdat[,"PSI0"] + allroots_ee_missdat[,"ETA0"]))
 
-save(allroots_ee_missdat,
+save(allroots_ee_missdat, all_params,
      file = file.path(path_staged_data, "allroots_ee_missdat.RData"))
 
 

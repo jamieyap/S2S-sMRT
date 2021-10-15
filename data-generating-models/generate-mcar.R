@@ -128,6 +128,6 @@ stopCluster(cl)
 # -----------------------------------------------------------------------------
 # Save output
 # -----------------------------------------------------------------------------
-save(simlist,
+save(simlist, all_params,
      file = file.path(path_staged_data, "mcar.RData"))
 
