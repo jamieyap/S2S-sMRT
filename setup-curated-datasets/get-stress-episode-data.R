@@ -92,6 +92,14 @@ dat_all <- dat_all %>%
 # merging with other data sources
 # -----------------------------------------------------------------------------
 
+# Check whether duplicates exist
+print(sum(duplicated(dat_all)))
+
+dat_all <- dat_all %>% 
+  mutate(ones = 1) %>%
+  mutate(episode_id = cumsum(ones)) %>%
+  select(-ones)
+
 parsed_dat_stress_episodes <- dat_all
 
 save(parsed_dat_stress_episodes, file = file.path(path_staged_data, "parsed_dat_stress_episodes.RData"))

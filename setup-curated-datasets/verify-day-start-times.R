@@ -13,10 +13,7 @@ all_participant_ids <- dat_masterlist %>%
   .[["participant_id"]]
 
 parsed_dat_day_start <- parsed_dat_day_start %>% 
-  filter(participant_id %in% all_participant_ids) %>%
-  select(participant_id, 
-         date_local, 
-         day_start_time_hrts_local)
+  filter(participant_id %in% all_participant_ids)
 
 parsed_dat_rand <- parsed_dat_rand %>% 
   filter(participant_id %in% all_participant_ids) %>%
@@ -47,15 +44,20 @@ idx_duplicates <- parsed_dat_day_start %>%
 # by comparing 'remainingTimeInMinute' calculated by the software
 # against remaining minutes out of the 720 minutes calculated 'by hand'
 
-cleaned_dat_day_start <- parsed_dat_day_start %>% filter(!idx_duplicates)
+verified_dat_day_start <- parsed_dat_day_start %>% filter(!idx_duplicates)
 
 # -----------------------------------------------------------------------------
 # Check validity of parsed day start times by comparing them against 
 # 'remainingTimeInMinute' calculated by the software
 # -----------------------------------------------------------------------------
 
+parsed_dat_rand %>%
+  select(participant_id, rand_time_hrts_local) %>%
+  duplicated(.) %>%
+  which(.)
+
 parsed_dat_rand <- left_join(x = parsed_dat_rand,
-                             y = cleaned_dat_day_start,
+                             y = verified_dat_day_start,
                              by = c("participant_id", "date_local"))
 
 parsed_dat_rand <- parsed_dat_rand %>%
@@ -69,6 +71,9 @@ dat_summary_start_day <- parsed_dat_rand %>%
   summarise(any_unequal = 1 * (sum(remainingTimeInMinute!=mins_remain, na.rm=TRUE) > 0), .groups = "keep") %>%
   arrange(desc(any_unequal))
 
+# Print out result of checks
+print(dat_summary_start_day)
+
 # -----------------------------------------------------------------------------
 # Check whether coin flips exist on days for which day start times do not exist
 # -----------------------------------------------------------------------------
@@ -80,29 +85,12 @@ dat_summary_coinflip <- parsed_dat_rand %>%
             .groups = "keep") %>%
   arrange(desc(any_rand_without_start_day))
 
+# Print out result of checks
+print(dat_summary_coinflip)
+
 # -----------------------------------------------------------------------------
-# Save cleaned up day start times: Need to load original 
-# parsed_dat_day_start.RData file again so that we keep the other columns
-# in that file which were dropped prior to performing the checks above.
-# We also 'clean up' the parsed randomization data.
+# Save verified day start times
 # -----------------------------------------------------------------------------
 
-load(file.path(path_staged_data, "dat_masterlist.RData"))
-load(file.path(path_staged_data, "parsed_dat_rand.RData"))
-load(file.path(path_staged_data, "parsed_dat_day_start.RData"))
-
-all_participant_ids <- dat_masterlist %>%
-  filter(exclude_from_all==0) %>%
-  select(participant_id) %>% 
-  .[["participant_id"]]
-
-cleaned_dat_day_start <- parsed_dat_day_start %>% 
-  filter(participant_id %in% all_participant_ids) %>%
-  filter(!idx_duplicates)
-
-cleaned_dat_rand <- parsed_dat_rand %>% 
-  filter(participant_id %in% all_participant_ids)
-
-save(cleaned_dat_day_start, file = file.path(path_staged_data, "cleaned_dat_day_start.RData"))
-save(cleaned_dat_rand, file = file.path(path_staged_data, "cleaned_dat_rand.RData"))
+save(verified_dat_day_start, file = file.path(path_staged_data, "verified_dat_day_start.RData"))
 

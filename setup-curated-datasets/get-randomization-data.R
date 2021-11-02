@@ -261,7 +261,12 @@ dat_rand <- dat_rand %>%
 # To enable subsequent merging by participant ID and calendar date
 dat_rand <- dat_rand %>% 
   mutate(date_utc = date(time_hrts_utc),
-         date_local = date(time_hrts_local))
+         date_local = date(time_hrts_local)) 
+
+dat_rand <- dat_rand %>%
+  mutate(ones = 1) %>%
+  mutate(emi_id = cumsum(ones)) %>%
+  select(-ones)
 
 # -----------------------------------------------------------------------------
 # Prepare to save parsed data to an RData file in preparation for

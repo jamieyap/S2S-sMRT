@@ -48,6 +48,17 @@ dat_all <- dat_all %>%
 # merging with other data sources
 # -----------------------------------------------------------------------------
 
+# See whether any duplicates exist
+# Only 2 rows are duplicates
+print(sum(duplicated(dat_all)))
+idx_duplicated <- duplicated(dat_all)
+dat_all <- dat_all %>% filter(!idx_duplicated)
+
+dat_all <- dat_all %>% 
+  mutate(ones = 1) %>%
+  mutate(event_id = cumsum(ones)) %>%
+  select(-ones)
+
 parsed_dat_activity <- dat_all
 
 save(parsed_dat_activity, file = file.path(path_staged_data, "parsed_dat_activity.RData"))
