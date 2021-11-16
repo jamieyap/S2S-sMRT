@@ -7,8 +7,14 @@ geometry: margin=1in
 output: 
   pdf_document:
     number_sections: TRUE
+
+header-includes:
+ \usepackage{float}
 ---
 
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -62,11 +68,11 @@ The remainder of this document exclude the participants and days described above
 
 _Unavailability due to inclement weather_
 
-Although participants generally attended their second in-person lab visit on their scheduled date, there were few instances when participants contacted study coordinators to delay their second in-person lab visit. In all these cases, participants reported that they could not attend their second in-person lab visit on Day 4 due to hazardous weather conditions, but were able to complete their second in-person lab visit on Day 5. We regarded all decision points on Day 0 as unavailable for these participants. 
+Although participants generally attended their second in-person lab visit on their scheduled date, there were few instances when participants contacted study coordinators to delay their second in-person lab visit. In all these cases, participants reported that they could not attend their second in-person lab visit on Day 4 due to hazardous weather conditions, but were able to complete their second in-person lab visit on Day 5. We regarded all decision points on Day 0 as unavailable for these participants. _Rationale:_ Study protocol (Section 9.2, Version \#24, 2018-01-12) dictates that during their first in-person lab visit, participants will plan to taper their smoking on the day just prior to their scheduled second in-person clinic visit; participants are asked in advance to plan to engage only in single puff smoking episodes on that day. Hence, regardless of when participants actually completed their second in-person lab visit, we expect participant's smoking behavior on the day of their scheduled second in-person lab visit to reflect a legitimate attempt to quit smoking. Hence, we do not set the _actual_ date of their second in-person visit as Day 0; rather, we set the date of their _scheduled_ second in-person clinic visit as Day 0. In this way, Day 0 can be interpreted as `Quit Day' for all participants in the study.
 
 _Unavailability due to omission of initiating start-of-day_
 
-Micro-randomizations for a particular day of the study (e.g., on Day 9) did not occur unless the participant initiated 'start-of-day' through pressing a start-of-day icon within the _mCerebrum_ app. In other words, for micro-randomizations to occur daily between Day 0 to Day 11, participants needed to press the start-of-day daily after waking. We regarded all decision points on those participant-days when the participant did not press the start-of-day icon within the _mCerebrum_ app as unavailable.
+Micro-randomizations for a particular day of the study (e.g., on Day 9) did not occur unless the participant initiated 'start-of-day' through pressing a start-of-day icon within the _mCerebrum_ app. In other words, for micro-randomizations to occur daily between Day 0 to Day 11, participants needed to press the start-of-day icon within the _mCerebrum_ app daily after waking. We regarded all decision points on those participant-days when the participant did not press the start-of-day icon within the _mCerebrum_ app as unavailable.
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
 dat_mrt_days <- left_join(x = dat_mrt_days, y = dat_masterlist[,c("participant_id","delayed_days","withdraw_date","scheduled_visit_date","end_study_date")], by = "participant_id")
@@ -114,7 +120,7 @@ kable(tab_all,
                     "Total Participant-Days")) %>%
   kable_styling(latex_options = c("HOLD_position")) %>% 
   pack_rows("Inclement weather", 1, 2) %>%
-  pack_rows("Omission of initiation of start-of-day", 2, nrow(tab_all))
+  pack_rows("Start-of-day was not initiated", 2, nrow(tab_all))
 ```
 
 _Unavailability for micro-randomizations determined in real-time by the mCerebrum app_
@@ -122,6 +128,8 @@ _Unavailability for micro-randomizations determined in real-time by the mCerebru
 Only the 720 minutes following initiation of start-of-day can be potentially regarded by the _mCerebrum_ app as available for micro-randomization. We refer to start-of-day as DP 0, and the 1, 2, ..., 720 minutes after start-of-day as DP 1, 2, 720. Hence, the upper limit in the number of available decision points (DP's) for each participant-day is 721.
 
 Availability for micro-randomization is determined in real-time by the mCerebrum app via a decision rule (see Figure 2 in Battalio, et al., 2021) involving consideration of the following conditions as long as a particular DP (among DP 0, DP 1, DP 720) does not fall after 'sleep time'. 
+
+In brief, 'sleep time' refers to the time of day at which the _mCerebrum_ app automatically paused Random EMA and EMI delivery until the next time start-of-day is initiated; 'sleep time' was pre-set by study staff in consultation with the participant prior to completion of the first in-person clinic visit. Hence, DP's which occur after 'sleep time', but prior to the next time start-of-day was initiated will be regarded as unavailable for micro-randomization.
 
 * Whether the participant was at the _peak_ of an episode
 * Whether less than 50% of minutes between the _start_ and _peak_ of an episode could be regarded as having poor data quality
@@ -132,8 +140,6 @@ Availability for micro-randomization is determined in real-time by the mCerebrum
 * Whether the participant was not physically active in the last 5 minutes
 * Whether the participant was not driving in the last 5 minutes
 * Whether the mobile phone's battery was greater than 10% in the last 5 minutes
-
-In brief, 'sleep time' refers to the time of day at which the _mCerebrum_ app automatically paused Random EMA and EMI delivery until the next time start-of-day is initiated; 'sleep time' was pre-set by study staff in consultation with the participant prior to completion of the first in-person clinic visit. Hence, DP's which occur after 'sleep time', but prior to the next time start-of-day was initiated will be regarded as unavailable for micro-randomization.
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
 dat_linked <- left_join(x = dat_linked, y = dat_mrt_days[, c("participant_id", "mrt_day", "is_dropped_due_to_withdraw", "is_dropped_due_to_weather","is_dropped_due_to_startofday")], by = c("participant_id","mrt_day"))
@@ -188,7 +194,6 @@ kable(tab_avail_app,
   pack_rows("Grand Total:", nrow(tab_avail_app), nrow(tab_avail_app) -1)
 ```
 
-
 \newpage
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
@@ -197,13 +202,14 @@ options(knitr.kable.NA = "")
 kable(tab_avail_app_within_M, 
       format="latex", 
       booktabs=TRUE, 
-      caption = "Among participant-days not included in Table 1 or Table 2, count decision points (DP's) regarded by the mCerebrum app as available for micro-randomization. In contrast with Table 3, the current table does not count the last 720 - M DP's. Here, M=120 minutes.",
+      caption = "Among participant-days not included in Table 1 or Table 2, count decision points (DP's) regarded by the mCerebrum app as available for micro-randomization. In contrast with Table 3, the current table does not count the last 720 - M DP's; here, M=120 minutes. In other words, the last 720 - 120 = 600 DP's will not be included in the analytic dataset, i.e., these DP's were excluded.",
       col.names = c("No. DP's/Participant-Day",
                     "No. Participant-Days",
                     "Total DP's")) %>%
   kable_styling(latex_options = c("HOLD_position")) %>%
   pack_rows("Grand Total:", nrow(tab_avail_app_within_M), nrow(tab_avail_app_within_M) -1)
 ```
+
 
 \newpage
 
@@ -223,9 +229,15 @@ load(file = file.path(path_staged_data, "cleaned_dat_stress_episodes.RData"))
 
 # Working with predictions of a stress episode detection algorithm
 
-_How often and how long were the Stress/Not Stress/Physically Active Episodes?_
+_Decision rules to link stress/not stress/physically active episodes to specific participant-days_
 
-Among participant-days not included in Table 1 or Table 2, we only included stress/not stressed/physically episodes which occurred within the first 720 minutes following the moment when the participant initiates start-of-day. That is, stress/not stress episodes occurring beyond beyond the first 720 minutes, but prior to the next time the participant initiates start-of-day were not included.
+In this section, given a specific participant-day, let $t_0$ denote the time-of-day when the participant initiates start-of-day and $t_0 + 720$ be 720 minutes following the moment when the participant initiates start-of-day. Stress/not stress/physically active episodes are linked to participant-days in which start-of-day was initiated, i.e., we do not attempt a linkage of episodes to participant-days in which start-of-day was not initiated.
+
+Among participant-days not included in Table 1 or Table 2, a stress/not stress/physically active episode was linked to a specific participant-day if the episode:
+
+* **(Case 1)** Began and ended within time time interval $\left[t_0, t_0 + 720\right]$, i.e., $A, C \in \left[t_0, t_0 + 720\right]$
+* **(Case 2)** Began after start-of-day was initiated, i.e., $A \in \left[t_0, t_0 + 720\right]$, but ended after 720 minutes following the moment when the participant initiates start-of-day, i.e., $C \not \in \left[t_0, t_0 + 720\right]$
+* **(Case 3)** Began prior to when start-of-day was initiated, i.e., $A \not \in \left[t_0, t_0 + 720\right]$, but ended prior to 720 minutes following the moment when the participant initiates start-of-day, i.e., $C \in \left[t_0, t_0 + 720\right]$
 
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
@@ -239,6 +251,7 @@ tab_episodes_count <- dat_episodes %>%
   arrange(desc(episode_classification))
 ```
 
+
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
 kable(tab_episodes_count, 
       format="latex", 
@@ -247,6 +260,29 @@ kable(tab_episodes_count,
       col.names = c("Episode Classification","No. Episodes")) %>%
   kable_styling(latex_options = c("HOLD_position"))
 ```
+
+
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+subset_dat_episodes <- dat_episodes[duplicated(dat_episodes$episode_id),]
+num_dups <- nrow(subset_dat_episodes)
+num_not_unique <- length(unique(subset_dat_episodes[["episode_id"]])) - num_dups
+smallest <- min(subset_dat_episodes$AC_hours)
+largest <- max(subset_dat_episodes$AC_hours)
+smallest <- round(smallest, 2)
+largest <- round(largest, 2)
+```
+
+We note that the above approach of linking episodes to participant-days generally results in each episode being linked to one and only one participant-day. Exceptions are `r num_dups` episodes which are each linked to `r ifelse(num_not_unique==0, 2, -999)` participant-days. These episodes belong to either Case 2 or Case 3 above and range between `r smallest` and `r largest` hours long, i.e., hours elapsed between A and C range between `r smallest` and `r largest` hours.
+
+_Linking episode-level stress/not stress/physically active classifications to minute-by-minute classifications_
+
+Each minute between $t_0$ and $t_0 + 720$ is labelled as a stress/not stress/physically active minute if it lies within a stress/not stress/physically active episode. Episodes considered are only those which have been linked to the specific participant-day using the rules described above.
+
+```{r, echo=FALSE, out.width="90%", out.height="90%", fig.align="center", fig.cap = "A visual depiction of how episode-level stress/not stress/physically active classifications are linked to minute-by-minute stress/not stress/physically active classifications in one hypothetical participant-day."}
+knitr::include_graphics("linkage-episode-to-minute.png")
+```
+
+_How often and how long were the Stress/Not Stress/Physically Active Episodes?_
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
 tab_episodes_stress_AB <- dat_episodes %>%
@@ -329,12 +365,11 @@ kable(tab_all,
   kable_styling(latex_options = c("HOLD_position"))
 ```
 
+
+
 # Overlapping windows?
 
-We use DP's included in Table 4 as our starting point. In contrast to those DP's in Table 3, we excluded DP's $\left\{720 - m: m = 1, 2, 3, ..., M\right\}$, where $M=120$. In other words, we additionally excluded the DP's for which we will not be able to 'look ahead' for a full $M=120$ minutes. Now, for each DP in Table 4 which we regard as available for micro-randomization:
-
-1. We noted whether the DP was followed by _any_ micro-randomization within the next $M$ minutes
-2. We noted whether the DP was followed by micro-randomization to _a stress management prompt_ within the next $M$ minutes
+We use DP's included in Table 4 as our starting point. In contrast to those DP's in Table 3, we excluded DP's $\left\{720 - m: m = 1, 2, 3, ..., M\right\}$, where $M=120$. In other words, we additionally excluded the DP's for which we will not be able to 'look ahead' for a full $M=120$ minutes. 
 
 ```{r, echo = FALSE, warning=FALSE, message = FALSE}
 rm(list = ls())
@@ -403,13 +438,20 @@ tab_rand <- dat_all %>%
   filter(is_minute_avail == 1) %>%
   group_by(isTriggered) %>%
   summarise(overall = n(),
-            cnt_any_coinflips = sum(num_coinflips > 0),
-            cnt_any_prompt = sum(num_prompts > 0))
+            cnt_none_coinflips = sum(num_coinflips == 0),
+            cnt_any_coinflips = sum(num_coinflips > 0))
 
-new_row <- data.frame(isTriggered = NA, 
+tab_rand <- tab_rand %>%
+  mutate(isTriggered = case_when(
+    isTriggered == 1 ~ "Micro-randomized to 'Prompt'",
+    isTriggered == 0 ~ "Micro-randomized to 'No Prompt'",
+    TRUE ~ NA_character_
+  ))
+
+new_row <- data.frame(isTriggered = NA_character_, 
                       overall = sum(tab_rand[["overall"]]),
-                      cnt_any_coinflips = sum(tab_rand[["cnt_any_coinflips"]]),
-                      cnt_any_prompt = sum(tab_rand[["cnt_any_prompt"]])
+                      cnt_none_coinflips = sum(tab_rand[["cnt_none_coinflips"]]),
+                      cnt_any_coinflips = sum(tab_rand[["cnt_any_coinflips"]])
                       )
 tab_rand <- rbind(tab_rand, new_row)
 ```
@@ -418,12 +460,61 @@ tab_rand <- rbind(tab_rand, new_row)
 kable(tab_rand, 
       format="latex", 
       booktabs=TRUE, 
-      caption = "Among DP's regarded as available for micro-randomization (see Table 4): How many were followed by any microrandomization within the next M=120 minutes? How many were follwed by micro-randomization to a stress management prompt within the next M=120 minutes?",
-      col.names = c("Randomized to Stress Management Prompt?", "Total Number of DP's", "Any Randomization?", "Randomized to Stress Management Prompt?")) %>%
+      caption = "Among DP's regarded as available for micro-randomization in Table 4: How many were followed by any microrandomization within the next M=120 minutes?",
+      col.names = c("Randomization assignment", "Total Number of DP's", "Without any micro-randomization", "With any micro-randomization")) %>%
   kable_styling(latex_options = c("HOLD_position", "scale_down")) %>%
   add_header_above(c("At current DP (k)"=2, "Among current DP's (k),\nin how many did any of the following occur\nwithin the next M=120 minutes\n(i.e., (k+1, k+1, ..., k+M))?"=2)) %>%
   pack_rows("Grand Total:", nrow(tab_rand), nrow(tab_rand)-1)
 ```
+
+Hence, Table 8 shows that among the 4744 DP's regarded as available for micro-randomization in the $k^{th}$ DP, 4402 were followed by a micro-randomization within the next $M=120$ minutes. This is further broken down:
+
+* Among the 4160 DP's micro-randomized to `No Prompt' in the $k^{th}$ DP, 3949 were followed by a micro-randomization within the next $M=120$ minutes.
+* Among the 584 DP's micro-randomized to `Prompt' in the $k^{th}$ DP, 453 were followed by a micro-randomization within the next $M=120$ minutes.
+
+Next, we break down the last column of Table 8.
+
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+options(knitr.kable.NA = "")
+
+tab_rand <- dat_all %>%
+  filter(is_minute_avail == 1) %>%
+  group_by(isTriggered) %>%
+  filter(num_coinflips > 0) %>%
+  summarise(overall = n(),
+            cnt_none_prompts = sum(num_prompts == 0),
+            cnt_any_prompts = sum(num_prompts > 0))
+
+tab_rand <- tab_rand %>%
+  mutate(isTriggered = case_when(
+    isTriggered == 1 ~ "Micro-randomized to 'Prompt'",
+    isTriggered == 0 ~ "Micro-randomized to 'No Prompt'",
+    TRUE ~ NA_character_
+  ))
+
+new_row <- data.frame(isTriggered = NA_character_, 
+                      overall = sum(tab_rand[["overall"]]),
+                      cnt_none_prompts = sum(tab_rand[["cnt_none_prompts"]]),
+                      cnt_any_prompts = sum(tab_rand[["cnt_any_prompts"]])
+                      )
+tab_rand <- rbind(tab_rand, new_row)
+```
+
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+kable(tab_rand, 
+      format="latex", 
+      booktabs=TRUE, 
+      caption = "Among DP's regarded as available in Table 4 and were followed by any micro-randomization within the next M=120 minutes, how many were micro-randomized to `Prompt' within the next M=120 minutes?",
+      col.names = c("Randomization assignment", "Total Number of DP's", "Never Micro-randomized to `Prompt'", "Micro-randomized to `Prompt'")) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down")) %>%
+  add_header_above(c("At current DP (k)"=2, "Among current DP's (k),\nin how many did any of the following occur\nwithin the next M=120 minutes\n(i.e., (k+1, k+1, ..., k+M))?"=2)) %>%
+  pack_rows("Grand Total:", nrow(tab_rand), nrow(tab_rand)-1)
+```
+
+Hence, Table 9 shows that among the 4402 DP's regarded as available for micro-randomization in the $k^{th}$ DP and were followed by a micro-randomization within the next $M=120$ minutes, 1744 were micro-randomized to `Prompt' within the next $M=120$ minutes. This is further broken down:
+
+* Among the 3949 DP's micro-randomized to `No Prompt' in the $k^{th}$ DP, 1616 were followed by a micro-randomization to 'Prompt' within the next $M=120$ minutes.
+* Among the 453 DP's micro-randomized to `Prompt' in the $k^{th}$ DP, 128 were followed by a micro-randomization to 'Prompt' within the next $M=120$ minutes.
 
 # References
 
