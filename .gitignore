@@ -1,6 +1,8 @@
 paths.txt
 paths.R
 simulated-datasets
+updates.Rmd
+updates.pdf
 
 # History files
 .Rhistory

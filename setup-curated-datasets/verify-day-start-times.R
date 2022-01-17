@@ -32,19 +32,20 @@ parsed_dat_rand <- parsed_dat_rand %>%
 # duplicates occurred, randomizations did occur.
 parsed_dat_day_start %>%
   select(participant_id, date_local) %>%
-  duplicated(.) %>%
+  duplicated(., fromLast = FALSE) %>%
   which(.)
 
 idx_duplicates <- parsed_dat_day_start %>%
   select(participant_id, date_local) %>%
-  duplicated(.)
+  duplicated(., fromLast = FALSE)
 
-# If two or more day start timestamps exist on a given participant-day
-# grab the earliest one; the validity of this rule can also be checked
+# One participant has more than one start-of-day timestamp on two different days
+# Decision: Grab the earliest one. 
+# The validity of this rule can also be checked
 # by comparing 'remainingTimeInMinute' calculated by the software
 # against remaining minutes out of the 720 minutes calculated 'by hand'
 
-verified_dat_day_start <- parsed_dat_day_start %>% filter(!idx_duplicates)
+parsed_dat_day_start <- parsed_dat_day_start %>% filter(!idx_duplicates)
 
 # -----------------------------------------------------------------------------
 # Check validity of parsed day start times by comparing them against 
@@ -57,7 +58,7 @@ parsed_dat_rand %>%
   which(.)
 
 parsed_dat_rand <- left_join(x = parsed_dat_rand,
-                             y = verified_dat_day_start,
+                             y = parsed_dat_day_start,
                              by = c("participant_id", "date_local"))
 
 parsed_dat_rand <- parsed_dat_rand %>%
@@ -66,6 +67,9 @@ parsed_dat_rand <- parsed_dat_rand %>%
                                             units = "mins"))) %>%
   mutate(mins_remain = ceiling(720 - mins_elapsed))
 
+# Any_unequal is an indicator for whether there exists conflicting information
+# between two sources of data on when the participant initiated start-of-day
+
 dat_summary_start_day <- parsed_dat_rand %>%
   group_by(participant_id, date_local) %>%
   summarise(any_unequal = 1 * (sum(remainingTimeInMinute!=mins_remain, na.rm=TRUE) > 0), .groups = "keep") %>%
@@ -73,6 +77,31 @@ dat_summary_start_day <- parsed_dat_rand %>%
 
 # Print out result of checks
 print(dat_summary_start_day)
+
+# Merge indicator with dataset containing the randomization assignments
+parsed_dat_rand <- left_join(x = parsed_dat_rand, y = dat_summary_start_day, by = c("participant_id","date_local"))
+
+# How many participant-decision points?
+sum(parsed_dat_rand$any_unequal)
+
+# -----------------------------------------------------------------------------
+# Apply rule: if there exists conflicting information
+# between two sources of data on when the participant initiated start-of-day,
+# then use data from the data stream containing the randomization assignments
+# -----------------------------------------------------------------------------
+
+parsed_dat_rand <- parsed_dat_rand %>%
+  mutate(new_day_start = as.POSIXct(NA)) %>%
+  mutate(new_day_start = if_else(any_unequal==1, 
+                                 rand_time_hrts_local - minutes(720 - remainingTimeInMinute), 
+                                 new_day_start)) 
+
+second(parsed_dat_rand[["new_day_start"]]) <- 0
+
+dat_new_start_day <- parsed_dat_rand %>%
+  filter(any_unequal == 1) %>%
+  select(participant_id, date_local, any_unequal, new_day_start) %>%
+  unique(.)
 
 # -----------------------------------------------------------------------------
 # Check whether coin flips exist on days for which day start times do not exist
@@ -87,6 +116,38 @@ dat_summary_coinflip <- parsed_dat_rand %>%
 
 # Print out result of checks
 print(dat_summary_coinflip)
+
+# -----------------------------------------------------------------------------
+# More clean up
+# -----------------------------------------------------------------------------
+
+verified_dat_day_start <- left_join(x = parsed_dat_day_start, 
+                                    y = dat_new_start_day,
+                                    by = c("participant_id","date_local"))
+
+verified_dat_day_start <- verified_dat_day_start %>%
+  mutate(any_unequal = replace(any_unequal, is.na(any_unequal), 0))
+
+verified_dat_day_start <- verified_dat_day_start %>%
+  mutate(day_start_time_hrts_local = if_else(any_unequal == 1, new_day_start, day_start_time_hrts_local),
+         day_start_time_hrts_utc = replace(day_start_time_hrts_utc, any_unequal == 1, NA),
+         day_start_time_unixts = replace(day_start_time_unixts, any_unequal == 1, NA)) 
+
+verified_dat_day_start <- verified_dat_day_start %>%
+  mutate(day_start_time_hrts_utc = if_else(any_unequal == 1, with_tz(day_start_time_hrts_local, tz = "UTC"), day_start_time_hrts_utc)) %>%
+  mutate(day_start_time_unixts = if_else(any_unequal == 1, as.numeric(day_start_time_hrts_utc), day_start_time_unixts))
+
+verified_dat_day_start <- verified_dat_day_start %>%
+  mutate(date_local = date(day_start_time_hrts_local),
+         date_utc = date(day_start_time_hrts_utc))
+
+verified_dat_day_start <- verified_dat_day_start %>% select(-new_day_start)
+
+these_duplicates <- duplicated(verified_dat_day_start[,c("participant_id","date_local")])
+idx_duplicates <- which(idx_duplicates)
+print(idx_duplicates)
+
+verified_dat_day_start <- verified_dat_day_start[!these_duplicates,]
 
 # -----------------------------------------------------------------------------
 # Save verified day start times

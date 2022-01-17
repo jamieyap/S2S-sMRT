@@ -88,19 +88,34 @@ dat_all <- dat_all %>%
          BC_hours = BC_mins/60)
 
 # -----------------------------------------------------------------------------
+# Perform some data cleaning steps
+# -----------------------------------------------------------------------------
+
+# Remove episodes whose start time is prior to January 1, 2000
+dat_all <- dat_all %>% filter(episode_start_hrts_utc > ymd_hms("2000-01-01 00:00:00", tz = "UTC"))
+
+# Order rows
+dat_all <- dat_all %>% arrange(participant_id, date_local, episode_start_hrts_local, AB_secs)
+
+# There are 34 episodes which have identical timestamps 
+# for the start (A) and peak (B) times, and only differ in their end times (C)
+print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc")])))
+print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])))
+print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc", "episode_end_hrts_utc")])))
+
+# Decision: Only take the episode with the shortest length of time between A and C.
+these_duplicates <- duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])
+parsed_dat_stress_episodes <- dat_all[!these_duplicates,]
+
+# -----------------------------------------------------------------------------
 # Prepare to save parsed data to an RData file in preparation for
 # merging with other data sources
 # -----------------------------------------------------------------------------
 
-# Check whether duplicates exist
-print(sum(duplicated(dat_all)))
-
-dat_all <- dat_all %>% 
+parsed_dat_stress_episodes <- parsed_dat_stress_episodes %>% 
   mutate(ones = 1) %>%
   mutate(episode_id = cumsum(ones)) %>%
   select(-ones)
-
-parsed_dat_stress_episodes <- dat_all
 
 save(parsed_dat_stress_episodes, file = file.path(path_staged_data, "parsed_dat_stress_episodes.RData"))
 

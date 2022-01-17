@@ -1,0 +1,35 @@
+---
+title: "Updates"
+author: |
+    |
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+geometry: margin=1in
+output: 
+  pdf_document:
+    number_sections: TRUE
+
+header-includes:
+ \usepackage{float}
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 120)
+```
+
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+library(kableExtra)
+library(dplyr)
+library(lubridate)
+source("paths.R")
+
+load(file = file.path(path_staged_data, "dat_masterlist.RData"))
+load(file = file.path(path_staged_data, "skeleton.RData"))
+load(file = file.path(path_staged_data, "dat_linked.RData"))
+load(file = file.path(path_staged_data, "cleaned_dat_stress_episodes.RData"))
+```
+

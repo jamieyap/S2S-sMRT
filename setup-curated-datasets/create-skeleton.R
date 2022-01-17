@@ -20,12 +20,16 @@ dat_mrt_start <- dat_masterlist %>%
 
 dat_mrt_days <- data.frame(participant_id = rep(dat_mrt_start[["participant_id"]], each = 11),
                            mrt_day = rep(0:10, times = length(dat_mrt_start[["participant_id"]])),
-                           date_local = rep(dat_mrt_start[["scheduled_visit_date"]], each = 11),
+                           scheduled_visit_date = rep(dat_mrt_start[["scheduled_visit_date"]], each = 11),
                            delayed_days = rep(dat_mrt_start[["delayed_days"]], each = 11),
                            total_mrt_days = rep(dat_mrt_start[["total_mrt_days"]], each = 11))
 
 dat_mrt_days <- dat_mrt_days %>%
-  mutate(date_local = date_local + days(mrt_day)) 
+  mutate(date_local = case_when(
+    delayed_days==0 ~ scheduled_visit_date + days(mrt_day),
+    delayed_days>0 ~ scheduled_visit_date + days(mrt_day) + delayed_days,
+    TRUE ~ NA_real_
+  )) 
 
 dat_mrt_days <- left_join(x = dat_mrt_days, 
                           y = verified_dat_day_start, 
@@ -39,13 +43,12 @@ dat_mrt_days <- left_join(x = dat_mrt_days,
 dat_mrt_days <- dat_mrt_days %>%
   mutate(is_day_avail = case_when(
     is.na(day_start_time_hrts_local) ~ 0,
-    delayed_days==1 & mrt_day==0 ~ 0,
     total_mrt_days < mrt_day ~ 0,
     TRUE ~ 1
   ))
 
 dat_mrt_days <- dat_mrt_days %>%
-  select(-delayed_days, -total_mrt_days, -date_utc) %>%
+  select(-delayed_days, -total_mrt_days, -date_utc, -scheduled_visit_date) %>%
   select(participant_id, mrt_day, 
          date_local, day_start_time_hrts_local, 
          everything())
