@@ -3,25 +3,16 @@ library(lubridate)
 library(readxl)
 source("paths.R")
 
-dat_withdrawal <- read_xlsx(file.path(path_raw_data_study_staff,
-                                      "Participants who withdrew.xlsx"),
-                            col_types = c("numeric",
-                                          "date"))
+dat_withdrawal <- read_xlsx(file.path(path_raw_data_study_staff, "Participants who withdrew.xlsx"),
+                            col_types = c("numeric", "date"))
 
 dat_withdrawal <- dat_withdrawal %>%
   mutate(participant_id = `Participant ID`,
          withdraw_date = `Withdraw Date`) %>%
   mutate(withdraw_date = as_date(withdraw_date))
 
-dat_visit_tracking <- read_xlsx(file.path(path_raw_data_study_staff,
-                                          "Sense2Stop Visit Tracking.xlsx"),
-                                col_types = c("numeric",
-                                              "date",
-                                              "date",
-                                              "date",
-                                              "date",
-                                              "date",
-                                              "text"),
+dat_visit_tracking <- read_xlsx(file.path(path_raw_data_study_staff, "Sense2Stop Visit Tracking.xlsx"),
+                                col_types = c("numeric", "date", "date", "date", "date", "date", "text"),
                                 na = c("NA","N/A",""))
 
 dat_visit_tracking <- dat_visit_tracking %>%
@@ -54,22 +45,27 @@ dat_masterlist <- dat_masterlist %>%
                                   `Day 14`)) 
 
 dat_masterlist <- dat_masterlist %>%
-  mutate(exclude_from_all = case_when(
-    # Exclude pilot participants from  all analyses 
-    participant_id < 200 ~ 1,
-    # Exclude participants who did not complete the Post-Quit Visit Date from all analyses
-    is.na(actual_visit_date) ~ 1,
-    TRUE~0
+  mutate(exclude_reason = NA_character_) %>%
+  mutate(exclude_reason = case_when(
+    # C1: On or before the actual date of their 2nd lab visit, the participant 
+    # informed study staff that they wish to withdraw
+    (!is.na(withdraw_date)) & (is.na(actual_visit_date)) ~ "C1",
+    # C2: Among those who were not counted in C1,
+    # those participants who did not complete their 2nd lab visit
+    (is.na(withdraw_date)) & (is.na(actual_visit_date)) ~ "C2",
+    # C3: Were part of the trial's pilot run
+    participant_id < 200 ~ "C3",
+    TRUE ~ NA_character_
   ))
 
 # Clean up columns
 dat_masterlist <- dat_masterlist %>%
-  select(participant_id, exclude_from_all, withdraw_date,
+  select(participant_id, exclude_reason, withdraw_date,
          begin_study_date, 
          scheduled_visit_date, actual_visit_date, 
          delayed_days,
          end_study_date) %>%
-  arrange(desc(exclude_from_all), desc(delayed_days), participant_id)
+  arrange(exclude_reason, desc(delayed_days), participant_id)
 
 # Save output
 save(dat_masterlist, file = file.path(path_staged_data, "dat_masterlist.RData"))

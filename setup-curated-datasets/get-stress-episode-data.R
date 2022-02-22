@@ -107,6 +107,9 @@ print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "ep
 these_duplicates <- duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])
 parsed_dat_stress_episodes <- dat_all[!these_duplicates,]
 
+# Check: How many episodes per category
+table(parsed_dat_stress_episodes$Stress_Episode_Classification)
+
 # -----------------------------------------------------------------------------
 # Prepare to save parsed data to an RData file in preparation for
 # merging with other data sources
