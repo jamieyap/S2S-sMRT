@@ -37,7 +37,8 @@ parsed_dat_stress_episodes <- parsed_dat_stress_episodes %>%
 
 # -----------------------------------------------------------------------------
 # Identify participant ID's having at least 1 micro-randomization
-# within 'first day' and 'last day' of the MRT
+# within 'first day' and 'last day' of the MRT (i.e., between the date times
+# first_day_mrt and last_day_mrt, inclusive)
 # -----------------------------------------------------------------------------
 tabulate_dat_rand <- parsed_dat_rand %>%
   group_by(participant_id) %>%
