@@ -37,9 +37,14 @@ dat_visit_tracking <- dat_visit_tracking %>%
 
 dat_visit_tracking <- dat_visit_tracking %>%
   mutate(end_study_date = case_when(
+    # Participants who formally withdrew and did not complete 2nd lab visit
     withdraw_status==1 & is.na(withdraw_days_after_quit) ~ as_date(NA),
-    withdraw_status==1 & !is.na(withdraw_days_after_quit) & withdraw_days_after_quit>0 ~ withdraw_date-days(1),
+    # Participants who formally withdrew but completed the 2nd lab visit
+    # Note that this case only include 1 participant and this participant withdrew 5 days AFTER completing their 2nd lab visit 
+    withdraw_status==1 & !is.na(withdraw_days_after_quit) & (withdraw_days_after_quit>0) ~ withdraw_date-days(1),
+    # Participants who did not formally withdraw and who completed their 2nd lab visit
     (withdraw_status==0) & (!is.na(actual_visit_date)) ~ actual_visit_date + days(10),
+    # All other cases; includes participants who did not formally withdraw but did not complete their 2nd lab visit
     TRUE ~ as_date(NA)
   ))
 
@@ -48,6 +53,7 @@ dat_masterlist <- dat_visit_tracking %>%
   mutate(exclude_reason = case_when(
     # C1: On or before the actual date of their 2nd lab visit, the participant 
     # informed study staff that they wish to withdraw
+    # Note: this case does NOT include the 1 participant who formally withdrew 5 days AFTER completing their 2nd lab visit
     (withdraw_status==1) & (is.na(actual_visit_date)) ~ "C1",
     # C2: Among those who were not counted in C1,
     # those participants who did not complete their 2nd lab visit

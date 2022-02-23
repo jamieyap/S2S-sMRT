@@ -111,6 +111,19 @@ parsed_dat_stress_episodes <- dat_all[!these_duplicates,]
 table(parsed_dat_stress_episodes$Stress_Episode_Classification)
 
 # -----------------------------------------------------------------------------
+# Provide plain-English labels to episode classification
+# -----------------------------------------------------------------------------
+
+parsed_dat_stress_episodes <- parsed_dat_stress_episodes %>%
+  mutate(orig_episode_classification = NA_character_) %>%
+  mutate(orig_episode_classification = case_when(
+    Stress_Episode_Classification == 0 ~ "no",  # Probably not stressed episodes
+    Stress_Episode_Classification == 2 ~ "yes",  # Probably stressed episodes
+    Stress_Episode_Classification == 3 ~ "unknown",  # Unknown episodes
+    TRUE ~ NA_character_
+  ))
+
+# -----------------------------------------------------------------------------
 # Prepare to save parsed data to an RData file in preparation for
 # merging with other data sources
 # -----------------------------------------------------------------------------
