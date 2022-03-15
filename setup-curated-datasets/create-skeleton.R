@@ -5,7 +5,7 @@ source("paths.R")
 
 load(file.path(path_staged_data, "dat_masterlist_updated.RData"))
 
-dat_masterlist_included <- dat_masterlist %>% filter(is.na(exclude_reason))
+dat_masterlist_included <- dat_masterlist %>% filter(exclude_reason == "none")
 
 # -----------------------------------------------------------------------------
 # Create a data frame in long-format where each row represents one

@@ -4,6 +4,7 @@
 
 # Set condition to TRUE when running this script for the first time
 if(FALSE){
+  # This is a very time-intensive operation
   source("setup-curated-datasets/unzip.R")
   rm(list = ls())
 }
@@ -52,4 +53,34 @@ rm(list = ls())
 source("setup-curated-datasets/create-skeleton.R")
 rm(list = ls())
 
+# -----------------------------------------------------------------------------
+# Create a data frame in long format with the Yit's
+# -----------------------------------------------------------------------------
+
+source("setup-curated-datasets/construct-episodes-physical-activity.R")
+rm(list = ls())
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-episode-length.R")
+  rm(list = ls())
+}
+
+source("setup-curated-datasets/construct-heart-rate-indicators.R")
+rm(list = ls())
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-existence-heart-rate-data.R")
+  rm(list = ls())
+}
+
+source("setup-curated-datasets/censor-episodes.R")
+rm(list = ls())
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-after-censoring.R")
+  rm(list = ls())
+}
 
