@@ -93,4 +93,6 @@ if(TRUE){
   rm(list = ls())
 }
 
+source("setup-curated-datasets/construct-minute-by-minute-classification.R")
+rm(list = ls())
 

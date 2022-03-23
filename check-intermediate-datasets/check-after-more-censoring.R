@@ -104,4 +104,44 @@ segments(x0 = summarydat$plot_id,
 dev.off()
 
 
+# -----------------------------------------------------------------------------
+# After censoring, what is the total length of time between A to C?
+# Display summary statistics by episode type
+# -----------------------------------------------------------------------------
+
+dat_cleaned_episodes_after_more_censoring <- dat_cleaned_episodes_after_more_censoring %>%
+  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local,
+                                       time2 = episode_newstart_hrts_local,
+                                       units = "mins"))) 
+
+summarydat <- dat_cleaned_episodes_after_more_censoring %>%
+  group_by(new_episode_classification) %>%
+  summarise(q0 = quantile(AC_mins, probs = 0),
+            q10 = quantile(AC_mins, probs = .10),
+            q25 = quantile(AC_mins, probs = .25),
+            q50 = quantile(AC_mins, probs = .50),
+            q75 = quantile(AC_mins, probs = .75),
+            q90 = quantile(AC_mins, probs = .90),
+            q100 = quantile(AC_mins, probs = 1)) %>%
+  mutate(my_order = case_when(
+    new_episode_classification == "yes" ~ 1,
+    new_episode_classification == "no" ~ 2,
+    new_episode_classification == "active" ~ 3,
+    TRUE ~ NA_real_)) %>%
+  arrange(my_order) %>%
+  select(-my_order)
+
+q90_yes <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "yes"]
+q90_no <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "no"]
+q90_active <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "active"]
+
+summarydat[["q0"]] <- format(summarydat[["q0"]], nsmall=2, digits=2)
+summarydat[["q10"]] <- format(summarydat[["q10"]], nsmall=2, digits=2)
+summarydat[["q25"]] <- format(summarydat[["q25"]], nsmall=2, digits=2)
+summarydat[["q50"]] <- format(summarydat[["q50"]], nsmall=2, digits=2)
+summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
+summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
+summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
+
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "more_censored_ACmins_percentiles_by_episode_type.csv"), row.names = FALSE)
 
