@@ -14,7 +14,7 @@ all_participant_ids <- unique(dat_mrt_days$participant_id)
 # Note that 'unknown' episodes have been removed at this point
 # so dat_cleaned_episodes_after_censoring should only contain
 # stressed, not stressed, and physically active episodes
-load(file.path(path_staged_data, "dat_cleaned_episodes_after_censoring.RData"))
+load(file.path(path_staged_data, "dat_cleaned_episodes_after_more_censoring.RData"))
 # Grab only the columns you need
 dat_episodes <- dat_cleaned_episodes_after_censoring %>%
   select(participant_id, episode_id, 

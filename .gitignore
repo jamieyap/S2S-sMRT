@@ -3,6 +3,7 @@ paths.R
 simulated-datasets
 updates.Rmd
 updates.pdf
+documentation/documentation.docx
 
 # History files
 .Rhistory

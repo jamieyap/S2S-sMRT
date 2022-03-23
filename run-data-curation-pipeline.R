@@ -84,3 +84,13 @@ if(TRUE){
   rm(list = ls())
 }
 
+source("setup-curated-datasets/censor-more-episodes.R")
+rm(list = ls())
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-after-more-censoring.R")
+  rm(list = ls())
+}
+
+

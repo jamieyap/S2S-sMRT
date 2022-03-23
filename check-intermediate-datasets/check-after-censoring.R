@@ -7,17 +7,72 @@ load(file = file.path(path_staged_data, "dat_cleaned_episodes_after_censoring.RD
 
 # -----------------------------------------------------------------------------
 # How many episodes were censored?
+# Display summary statistics by episode type
+# -----------------------------------------------------------------------------
+
+summarydat <- dat_cleaned_episodes_after_censoring %>%
+  group_by(new_episode_classification) %>%
+  summarise(tot_episodes = n(),
+            num_censored = sum(is_censored)) %>%
+  mutate(percent_censored = round(100*num_censored/tot_episodes, 0))
+
+summarydat$plot_id <- 1:nrow(summarydat)
+
+jpeg(file.path("check-intermediate-datasets", "collect-output", "viz_after_censor_by_episode_type.jpg"),
+     width = 10, height = 10, units = "in", res = 600)
+
+plot(-1, 
+     xaxt = "n",
+     yaxt = "n",
+     xlim = c(0, nrow(summarydat)+1), 
+     ylim = c(0, max(summarydat$tot_episodes)),
+     xlab = "",
+     ylab = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
+     main = "",
+     frame = FALSE)
+axis(2, lwd = 5, cex.axis = 1.5)
+text(x = 1:3,
+     y = par("usr")[3] - 0.15,
+     labels = c("Physically Active", "Probably Not Stressed", "Probably Stressed"),
+     xpd = NA,
+     srt = 20,
+     adj = 0.9,
+     cex = 1.5)
+segments(x0 = summarydat$plot_id, 
+         x1 = summarydat$plot_id, 
+         y0 = rep(0,nrow(summarydat)),
+         y1 = summarydat$tot_episodes,
+         lwd = 20,
+         col = "gray")
+segments(x0 = summarydat$plot_id, 
+         x1 = summarydat$plot_id, 
+         y0 = rep(0,nrow(summarydat)),
+         y1 = summarydat$num_censored,
+         lwd = 20,
+         col = "cornflowerblue")
+text(x = 1:3 + 0.25, y = c(1500, 2700, 700), 
+     c(paste(summarydat[["percent_censored"]][1], "%", sep=""), 
+       paste(summarydat[["percent_censored"]][2], "%", sep=""), 
+       paste(summarydat[["percent_censored"]][3], "%", sep="")), 
+     col = "skyblue4", cex = 2)
+
+dev.off()
+
+# -----------------------------------------------------------------------------
+# How many episodes were censored?
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_cleaned_episodes_after_censoring %>%
   group_by(participant_id) %>%
   summarise(tot_episodes = n(),
-            num_censored = sum(is_censored))
+            num_censored = sum(is_censored)) %>%
+  mutate(percent_censored = round(100*num_censored/tot_episodes, 0)) %>%
+  arrange(tot_episodes)
 
 summarydat$plot_id <- 1:nrow(summarydat)
 
-jpeg(file.path("check-intermediate-datasets", "collect-output", "viz_after_censor.jpg"),
-     width = 14, height = 14, units = "in", res = 300)
+jpeg(file.path("check-intermediate-datasets", "collect-output", "viz_after_censor_by_participant.jpg"),
+     width = 14, height = 14, units = "in", res = 600)
 
 plot(-1, 
      xaxt = "n",
@@ -47,9 +102,38 @@ segments(x0 = summarydat$plot_id,
 
 dev.off()
 
+# -----------------------------------------------------------------------------
+# After censoring, what is the total length of time between A to C?
+# Display summary statistics on the aggregate
+# -----------------------------------------------------------------------------
+
+dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
+  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local,
+                                       time2 = episode_newstart_hrts_local,
+                                       units = "mins"))) 
+
+summarydat <- dat_cleaned_episodes_after_censoring %>%
+  summarise(q0 = quantile(AC_mins, probs = 0),
+            q10 = quantile(AC_mins, probs = .10),
+            q25 = quantile(AC_mins, probs = .25),
+            q50 = quantile(AC_mins, probs = .50),
+            q75 = quantile(AC_mins, probs = .75),
+            q90 = quantile(AC_mins, probs = .90),
+            q100 = quantile(AC_mins, probs = 1))
+
+summarydat[["q0"]] <- format(summarydat[["q0"]], nsmall=2, digits=2)
+summarydat[["q10"]] <- format(summarydat[["q10"]], nsmall=2, digits=2)
+summarydat[["q25"]] <- format(summarydat[["q25"]], nsmall=2, digits=2)
+summarydat[["q50"]] <- format(summarydat[["q50"]], nsmall=2, digits=2)
+summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
+summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
+summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
+
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_percentiles_aggregate.csv"), row.names = FALSE)
 
 # -----------------------------------------------------------------------------
 # After censoring, what is the total length of time between A to C?
+# Display summary statistics by episode type
 # -----------------------------------------------------------------------------
 
 dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
@@ -86,12 +170,11 @@ summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
 summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
 summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
 
-print(summarydat)
-
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_percentiles.csv"), row.names = FALSE)
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_percentiles_by_episode_type.csv"), row.names = FALSE)
 
 # -----------------------------------------------------------------------------
 # Tabulate number of episodes which are M minutes long
+# Display summary statistics by episode type
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_cleaned_episodes_after_censoring %>%
@@ -114,12 +197,11 @@ summarydat <- summarydat %>%
           is_exceed_5min = sum(.[["is_exceed_5min"]])) %>%
   mutate(total = is_0min + is_within_5min + is_exceed_5min)
 
-print(summarydat)
-
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_counts.csv"), row.names = FALSE)
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_counts_by_episode_type.csv"), row.names = FALSE)
 
 # -----------------------------------------------------------------------------
 # Investigate those episodes for which length of time between A to C is zero
+# Display summary statistics by episode type
 # -----------------------------------------------------------------------------
 
 dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
@@ -135,6 +217,7 @@ summary(dat_zeros$mins_elapsed_start_and_peak)
 
 # -----------------------------------------------------------------------------
 # Investigate the 90th to 100th percentiles
+# Display summary statistics by episode type
 # -----------------------------------------------------------------------------
 
 q90_yes <- as.numeric(q90_yes)
@@ -152,7 +235,7 @@ dat_tail <- dat_cleaned_episodes_after_censoring %>%
   arrange(desc(AC_mins))
 
 # How many episodes?
-print(nrow(dat_tail))
+num_episodes_in_tail <- nrow(dat_tail)
 
 # What does the distribution of the tail look like?
 fit_yes <- density(dat_tail[["AC_mins"]][dat_tail[["new_episode_classification"]] == "yes"], kernel = "gaussian")
@@ -186,4 +269,5 @@ legend("topright",
        cex = 1.3)
 
 dev.off()
+
 
