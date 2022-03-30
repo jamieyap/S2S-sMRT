@@ -74,6 +74,8 @@ for(i in 1:length(all_included_participants)){
 
 dat_cleaned_episodes_after_censoring <- do.call(rbind, newlist_all)
 
+# -----------------------------------------------------------------------------
 # Save intermediate output
+# -----------------------------------------------------------------------------
 save(dat_cleaned_episodes_after_censoring, file = file.path(path_staged_data, "dat_cleaned_episodes_after_censoring.RData"))
 

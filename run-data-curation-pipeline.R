@@ -57,6 +57,9 @@ rm(list = ls())
 # Create a data frame in long format with the Yit's
 # -----------------------------------------------------------------------------
 
+# Note that this script is where episodes (all types) for which peak
+#  is not within first day of mrt and last day of mrt are removed prior to
+# all subsequent data processing steps
 source("setup-curated-datasets/construct-episodes-physical-activity.R")
 rm(list = ls())
 
@@ -95,4 +98,18 @@ if(TRUE){
 
 source("setup-curated-datasets/construct-minute-by-minute-classification.R")
 rm(list = ls())
+
+# -----------------------------------------------------------------------------
+# Merge randomization assignment data with minute-by-minute episode
+# classification data
+# -----------------------------------------------------------------------------
+
+source("setup-curated-datasets/construct-stratification-variable.R")
+rm(list = ls())
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-stratification-varaiable.R")
+  rm(list = ls())
+}
 
