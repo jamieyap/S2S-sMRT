@@ -43,3 +43,9 @@ dat_summary_by_class <- dat_matched_most_recent_classification %>%
 
 write.csv(dat_summary_by_class, file.path("check-intermediate-datasets", "collect-output", "summarize_stratification_time.csv"), row.names = FALSE)
 
+dat_crosstab <- dat_matched_most_recent_classification %>%
+  group_by(isStress, most_recent_classification) %>%
+  summarise(count = n())
+
+write.csv(dat_crosstab, file.path("check-intermediate-datasets", "collect-output", "dat_crosstab_strata.csv"), row.names = FALSE)
+

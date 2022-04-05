@@ -14,7 +14,7 @@ parsed_dat_rand <- left_join(x = parsed_dat_rand, y = dat_masterlist, by = "part
 dat_rand <- parsed_dat_rand %>%
   filter((rand_time_hrts_local >= first_day_mrt) & (rand_time_hrts_local <= last_day_mrt)) %>%
   filter(exclude_reason == "none") %>%
-  select(participant_id, rand_time_hrts_local, probability, isTriggered)
+  select(participant_id, rand_time_hrts_local, isStress, probability, isTriggered)
 
 # -----------------------------------------------------------------------------
 # Transform dat_rand and dat_minute_by_minute_classification into a list, 
