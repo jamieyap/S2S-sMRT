@@ -109,7 +109,7 @@ rm(list = ls())
 
 # Set condition to TRUE when running this script for the first time
 if(TRUE){
-  source("check-intermediate-datasets/check-stratification-varaiable.R")
+  source("check-intermediate-datasets/check-stratification-variable.R")
   rm(list = ls())
 }
 
