@@ -33,7 +33,7 @@ summary1 <- rbind(summary1,
 
 summary1[["percent"]] <- format(summary1[["percent"]], digits=2, nsmall=2)
 
-write.csv(summary1, file.path(path_staged_data, "count_any_heart_rate_aggregate.csv"), row.names = FALSE, na = "")
+write.csv(summary1, file.path("check-intermediate-datasets", "collect-output", "count_any_heart_rate_aggregate.csv"), row.names = FALSE, na = "")
 
 # -----------------------------------------------------------------------------
 # In how many episodes does heart rate data exist 
@@ -61,6 +61,6 @@ summary2 <- rbind(summary2,
 
 summary2[["percent"]] <- format(summary2[["percent"]], digits=2, nsmall=2)
 
-write.csv(summary2, file.path(path_staged_data, "count_any_heart_rate_disaggregate.csv"), row.names = FALSE, na = "")
+write.csv(summary2, file.path("check-intermediate-datasets", "collect-output", "count_any_heart_rate_disaggregate.csv"), row.names = FALSE, na = "")
 
 

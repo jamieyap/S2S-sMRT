@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # Set condition to TRUE when running this script for the first time
-if(FALSE){
+if(TRUE){
   # This is a very time-intensive operation
   source("setup-curated-datasets/unzip.R")
   rm(list = ls())
