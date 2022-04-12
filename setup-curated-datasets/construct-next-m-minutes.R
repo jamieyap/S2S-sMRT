@@ -94,10 +94,31 @@ for(idx_this_participant in seq_len(tot_participants)){
 dat_linked_future <- bind_rows(list_dat_linked_future)
 
 # -----------------------------------------------------------------------------
-# Save output
+# Only select columns you will need
 # -----------------------------------------------------------------------------
 
 data_for_analysis <- dat_linked_future %>% select(-within_5min, -isStress)
+
+# -----------------------------------------------------------------------------
+# Add documentation on variables in the data frame data_for_analysis
+# -----------------------------------------------------------------------------
+
+attributes(data_for_analysis)$data.dictionary <- list("participant_id" = "A unique identifier for each participant enrolled in the study", 
+                                                      "rand_time_hrts_local" = "Timestamp corresponding to when micro-randomization occurred",
+                                                      "probability" = "The probability that an individual will be micro-randomized to prompt; that is, the probability that isTriggered=1. Conversely, 1-probability is the probability that an individual will be micro-randomized to no prompt; that is, the probability that isTriggered=0",
+                                                      "isTriggered" = "A categorical variable to indicate whether the individual was micro-randomized to prompt (=1) or no prompt (=0)",
+                                                      "most_recent_classification" = "A categorical variable to indicate whether micro-randomization occurred when the individual was probably stressed (=yes) or probably not stressed (=no)",
+                                                      "when_most_recent_classification" = "Timestamp corresponding to the most recent classification (given by the variable most_recent_classification) available prior to micro-randomization",
+                                                      "elapsed_secs" = "Difference between rand_time_hrts_local and when_most_recent_classification in seconds",
+                                                      "Ym" = "A categorical variable to indicate whether an individual is probably stressed (=yes), probably not stressed (=no) or physically active (=active) m minutes after micro-randomization at the timestamp given by rand_time_hrts_local")
+
+# This operation transforms data.dictionary into a column vector
+attributes(data_for_analysis)$data.dictionary <- do.call(rbind, attributes(data_for_analysis)$data.dictionary)
+
+
+# -----------------------------------------------------------------------------
+# Save output
+# -----------------------------------------------------------------------------
 
 save(data_for_analysis, file = file.path(path_staged_data, "data_for_analysis.RData"))
 
