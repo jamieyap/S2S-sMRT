@@ -18,4 +18,13 @@ tab <- dat_rand_for_treatment_effect_estimation %>%
   summarise(num_exactly_zero = sum(probability == 0),
             num_exactly_one = sum(probability == 1))
 
-print(tab)
+dat_stress <- dat_rand_for_treatment_effect_estimation %>% filter(isStress==1)
+dat_not_stress <- dat_rand_for_treatment_effect_estimation %>% filter(isStress==0)
+
+tab <- tab %>% arrange(desc(isStress))
+tab[["total"]] <- c(nrow(dat_stress), nrow(dat_not_stress))
+tab[["mean"]] <- c(mean(dat_stress[["probability"]]), mean(dat_not_stress[["probability"]]))
+tab[["sd"]] <- c(sd(dat_stress[["probability"]]), sd(dat_not_stress[["probability"]]))
+
+write.csv(tab, file.path("check-intermediate-datasets", "collect-output", "rand_probs_summary.csv"), row.names = FALSE)
+
