@@ -1,0 +1,5 @@
+"Episode Type","No. of episodes for which the duration of time between B and C is greater than 5 minutes","Median time (in minutes) between B and C","90th percentile time (in minutes) between B and C","Max time (in minutes) between B and C"
+"yes",678,6.01152499914169,11.7961100010077,664.990516666571
+"no",5006,4.0088666677475,9.01882500052452,904.000266667207
+"active",1386,5.99118333260218,12.9925833328565,3307.99675000111
+"tot",7070,,,

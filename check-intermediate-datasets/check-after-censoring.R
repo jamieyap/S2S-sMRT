@@ -8,9 +8,12 @@ load(file = file.path(path_staged_data, "dat_cleaned_episodes_after_censoring.RD
 # -----------------------------------------------------------------------------
 # How many episodes were censored?
 # Display summary statistics by episode type
+# Only display summary statistics using episodes for which
+# time between B and C which exceeds 5 minutes
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_cleaned_episodes_after_censoring %>%
+  filter(is_exceeds_5min==1) %>%
   group_by(new_episode_classification) %>%
   summarise(tot_episodes = n(),
             num_censored = sum(is_censored)) %>%
@@ -27,9 +30,10 @@ plot(-1,
      xlim = c(0, nrow(summarydat)+1), 
      ylim = c(0, max(summarydat$tot_episodes)),
      xlab = "",
-     ylab = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
-     main = "",
-     frame = FALSE)
+     ylab = "",
+     main = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
+     frame = FALSE,
+     cex.main = 1.5)
 axis(2, lwd = 5, cex.axis = 1.5)
 text(x = 1:3,
      y = par("usr")[3] - 0.15,
@@ -50,7 +54,7 @@ segments(x0 = summarydat$plot_id,
          y1 = summarydat$num_censored,
          lwd = 20,
          col = "cornflowerblue")
-text(x = 1:3 + 0.25, y = c(1500, 2700, 700), 
+text(x = 1:3 - 0.25, y = c(1500, 2700, 700), 
      c(paste(summarydat[["percent_censored"]][1], "%", sep=""), 
        paste(summarydat[["percent_censored"]][2], "%", sep=""), 
        paste(summarydat[["percent_censored"]][3], "%", sep="")), 
@@ -60,14 +64,17 @@ dev.off()
 
 # -----------------------------------------------------------------------------
 # How many episodes were censored?
+# Only display summary statistics using episodes for which 
+# time between B and C exceeds 5 minutes
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_cleaned_episodes_after_censoring %>%
+  filter(is_exceeds_5min==1) %>%
   group_by(participant_id) %>%
   summarise(tot_episodes = n(),
             num_censored = sum(is_censored)) %>%
   mutate(percent_censored = round(100*num_censored/tot_episodes, 0)) %>%
-  arrange(tot_episodes)
+  arrange(desc(tot_episodes))
 
 summarydat$plot_id <- 1:nrow(summarydat)
 
@@ -80,11 +87,11 @@ plot(-1,
      xlim = c(0, nrow(summarydat)), 
      ylim = c(0, max(summarydat$tot_episodes)),
      xlab = "Each vertical line represents one participant",
-     ylab = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
-     main = paste("Note: Unknown episodes were not included in the counts.",
-                  "Only probably stressed, probably not stressed, and physically active episodes were included in the counts",
-                  sep="\n"),
-     frame = FALSE)
+     # All types of episodes (probably stressed, probably not stressed, physically active) were included in this plot
+     ylab = "",
+     main = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
+     frame = FALSE,
+     cex.main = 1.5)
 axis(2, lwd = 5, cex.axis = 1.5)
 axis(1, at = c(1, 7*c(1,2,3,4,5,6,7)), labels = c(1, 7*c(1,2,3,4,5,6,7)), tick = TRUE, lwd = 0, lwd.ticks = 0, cex.axis = 1.5)
 segments(x0 = summarydat$plot_id, 
@@ -99,175 +106,99 @@ segments(x0 = summarydat$plot_id,
          y1 = summarydat$num_censored,
          lwd = 20,
          col = "cornflowerblue")
-
 dev.off()
 
 # -----------------------------------------------------------------------------
-# After censoring, what is the total length of time between A to C?
+# After censoring, what is the total length of time between B to C?
 # Display summary statistics on the aggregate
 # -----------------------------------------------------------------------------
 
-dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
-  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local,
-                                       time2 = episode_newstart_hrts_local,
-                                       units = "mins"))) 
-
 summarydat <- dat_cleaned_episodes_after_censoring %>%
-  summarise(q0 = quantile(AC_mins, probs = 0),
-            q10 = quantile(AC_mins, probs = .10),
-            q25 = quantile(AC_mins, probs = .25),
-            q50 = quantile(AC_mins, probs = .50),
-            q75 = quantile(AC_mins, probs = .75),
-            q90 = quantile(AC_mins, probs = .90),
-            q100 = quantile(AC_mins, probs = 1))
+  filter(is_exceeds_5min==1) %>%
+  mutate(BC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local, 
+                                       time2 = episode_newpeak_hrts_local, 
+                                       units = "mins"))) %>%
+  group_by(new_episode_classification) %>%
+  summarise(tot = n(),
+            q50 = quantile(BC_mins, probs = .50),
+            q90 = quantile(BC_mins, probs = .90),
+            q100 = quantile(BC_mins, probs = 1)) %>%
+  mutate(my_order = case_when(
+    new_episode_classification == "yes" ~ 1,
+    new_episode_classification == "no" ~ 2,
+    new_episode_classification == "active" ~ 3,
+    TRUE ~ NA_real_))  %>%
+  arrange(my_order) %>%
+  select(-my_order) %>%
+  add_row(new_episode_classification = "tot",
+          tot = sum(.[["tot"]]),
+          q50 = NA_real_,
+          q90 = NA_real_,
+          q100 = NA_real_)
 
-summarydat[["q0"]] <- format(summarydat[["q0"]], nsmall=2, digits=2)
-summarydat[["q10"]] <- format(summarydat[["q10"]], nsmall=2, digits=2)
-summarydat[["q25"]] <- format(summarydat[["q25"]], nsmall=2, digits=2)
-summarydat[["q50"]] <- format(summarydat[["q50"]], nsmall=2, digits=2)
-summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
-summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
-summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
+colnames(summarydat) <- c("Episode Type", 
+                          "No. of episodes for which the duration of time between B and C is greater than 5 minutes", 
+                          "Median time (in minutes) between B and C", 
+                          "90th percentile time (in minutes) between B and C",
+                          "Max time (in minutes) between B and C")
+print(summarydat)
 
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_percentiles_aggregate.csv"), row.names = FALSE)
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "BCmins_after_censoring.csv"), row.names = FALSE, na = "")
 
 # -----------------------------------------------------------------------------
 # After censoring, what is the total length of time between A to C?
-# Display summary statistics by episode type
 # -----------------------------------------------------------------------------
 
-dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
-  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local,
-                                       time2 = episode_newstart_hrts_local,
-                                       units = "mins"))) 
-
 summarydat <- dat_cleaned_episodes_after_censoring %>%
+  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local, 
+                                       time2 = episode_newstart_hrts_local, 
+                                       units = "mins"))) %>%
   group_by(new_episode_classification) %>%
-  summarise(q0 = quantile(AC_mins, probs = 0),
-            q10 = quantile(AC_mins, probs = .10),
-            q25 = quantile(AC_mins, probs = .25),
+  summarise(tot = n(),
             q50 = quantile(AC_mins, probs = .50),
-            q75 = quantile(AC_mins, probs = .75),
             q90 = quantile(AC_mins, probs = .90),
             q100 = quantile(AC_mins, probs = 1)) %>%
   mutate(my_order = case_when(
     new_episode_classification == "yes" ~ 1,
     new_episode_classification == "no" ~ 2,
     new_episode_classification == "active" ~ 3,
-    TRUE ~ NA_real_)) %>%
+    TRUE ~ NA_real_))  %>%
   arrange(my_order) %>%
-  select(-my_order)
+  select(-my_order) %>%
+  add_row(new_episode_classification = "tot",
+          tot = sum(.[["tot"]]),
+          q50 = NA_real_,
+          q90 = NA_real_,
+          q100 = NA_real_)
 
-q90_yes <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "yes"]
-q90_no <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "no"]
-q90_active <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "active"]
+colnames(summarydat) <- c("Episode Type", 
+                          "No. of episodes", 
+                          "Median time (in minutes) between A and C", 
+                          "90th percentile time (in minutes) between A and C",
+                          "Max time (in minutes) between A and C")
+print(summarydat)
 
-summarydat[["q0"]] <- format(summarydat[["q0"]], nsmall=2, digits=2)
-summarydat[["q10"]] <- format(summarydat[["q10"]], nsmall=2, digits=2)
-summarydat[["q25"]] <- format(summarydat[["q25"]], nsmall=2, digits=2)
-summarydat[["q50"]] <- format(summarydat[["q50"]], nsmall=2, digits=2)
-summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
-summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
-summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
-
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_percentiles_by_episode_type.csv"), row.names = FALSE)
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "ACmins_after_censoring.csv"), row.names = FALSE, na = "")
 
 # -----------------------------------------------------------------------------
-# Tabulate number of episodes which are M minutes long
-# Display summary statistics by episode type
+# After censoring, what is the total length of time between A to C?
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_cleaned_episodes_after_censoring %>%
-  group_by(new_episode_classification) %>%
-  summarise(is_0min = sum(AC_mins==0),
-            is_within_5min = sum(AC_mins>0 & AC_mins<=5),
-            is_exceed_5min = sum(AC_mins>5)) %>%
-  mutate(my_order = case_when(
-    new_episode_classification == "yes" ~ 1,
-    new_episode_classification == "no" ~ 2,
-    new_episode_classification == "active" ~ 3,
-    TRUE ~ NA_real_)) %>%
-  arrange(my_order) %>%
-  select(-my_order)
+  mutate(AC_mins = as.numeric(difftime(time1 = episode_newend_hrts_local, 
+                                       time2 = episode_newstart_hrts_local, 
+                                       units = "mins"))) %>%
+  summarise(tot = n(),
+            q50 = quantile(AC_mins, probs = .50),
+            q90 = quantile(AC_mins, probs = .90),
+            q100 = quantile(AC_mins, probs = 1)) 
 
-summarydat <- summarydat %>% 
-  add_row(new_episode_classification = "total",
-          is_0min = sum(.[["is_0min"]]),
-          is_within_5min = sum(.[["is_within_5min"]]),
-          is_exceed_5min = sum(.[["is_exceed_5min"]])) %>%
-  mutate(total = is_0min + is_within_5min + is_exceed_5min)
+colnames(summarydat) <- c("No. of episodes", 
+                          "Median time (in minutes) between A and C", 
+                          "90th percentile time (in minutes) between A and C",
+                          "Max time (in minutes) between A and C")
+print(summarydat)
 
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "censored_ACmins_counts_by_episode_type.csv"), row.names = FALSE)
-
-# -----------------------------------------------------------------------------
-# Investigate those episodes for which length of time between A to C is zero
-# Display summary statistics by episode type
-# -----------------------------------------------------------------------------
-
-dat_cleaned_episodes_after_censoring <- dat_cleaned_episodes_after_censoring %>%
-  mutate(mins_elapsed_start_and_peak = as.numeric(difftime(time1 = episode_peak_hrts_local,
-                                                           time2 = episode_start_hrts_local,
-                                                           units = "mins")))
-
-dat_zeros <- dat_cleaned_episodes_after_censoring %>% filter(AC_mins == 0)
-# Turns out that all of these episodes are such that their
-# start and peak are identical, to the second-level
-# This could potentially mean that they are less than 1 second in length
-summary(dat_zeros$mins_elapsed_start_and_peak)
-
-# -----------------------------------------------------------------------------
-# Investigate the 90th to 100th percentiles
-# Display summary statistics by episode type
-# -----------------------------------------------------------------------------
-
-q90_yes <- as.numeric(q90_yes)
-q90_no <- as.numeric(q90_no)
-q90_active <- as.numeric(q90_active)
-
-dat_tail <- dat_cleaned_episodes_after_censoring %>% 
-  mutate(is_included = case_when(
-    new_episode_classification=="yes" & AC_mins > q90_yes ~ 1,
-    new_episode_classification=="no" & AC_mins > q90_no ~ 1,
-    new_episode_classification=="active" & AC_mins > q90_active ~ 1,
-    TRUE ~ 0
-  )) %>%
-  filter(is_included == 1) %>%
-  arrange(desc(AC_mins))
-
-# How many episodes?
-num_episodes_in_tail <- nrow(dat_tail)
-
-# What does the distribution of the tail look like?
-fit_yes <- density(dat_tail[["AC_mins"]][dat_tail[["new_episode_classification"]] == "yes"], kernel = "gaussian")
-fit_no <- density(dat_tail[["AC_mins"]][dat_tail[["new_episode_classification"]] == "no"], kernel = "gaussian")
-fit_active <- density(dat_tail[["AC_mins"]][dat_tail[["new_episode_classification"]] == "active"], kernel = "gaussian")
-
-# Plot estimated density
-jpeg(file.path("check-intermediate-datasets", "collect-output", "ACmins_90percentile_and_above.jpg"),
-     width = 7, height = 7, units = "in", res = 300)
-
-xmin <- 0
-xmax <- 2*60
-these_vals <- seq(xmin, xmax, 1)
-plot(-1, xlim = c(xmin, xmax), ylim = c(0, .20), xaxt = "n", yaxt = "n", frame = FALSE, 
-     xlab = "",
-     ylab = "")
-lines(fit_yes, col = "tomato", lty = 2, type = "l", lwd = 3)
-lines(fit_no, col = "cornflowerblue", lty = 2, type = "l", lwd = 3)
-lines(fit_active, col = "seagreen", lty = 2, type = "l", lwd = 3)
-axis(1, at = seq(xmin, xmax, 30), cex.axis = 1.5, lwd = 3)
-axis(2, at = seq(0, .20, .05), cex.axis = 1.5, lwd = 3)
-mtext("Density", side=2, line=3, cex=1.5)
-mtext("Minutes between start and end of episode", side=1, line=3, cex=1.5)
-legend("topright", 
-       c("Probably Stressed",
-         "Probably Not Stressed",
-         "Physically Active"),
-       lty = c(1,1,1),
-       lwd = c(3,3,3),
-       col = c("tomato","cornflowerblue","seagreen"),
-       cex = 1.3)
-
-dev.off()
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "ACmins_after_censoring_aggregate.csv"), row.names = FALSE, na = "")
 
 

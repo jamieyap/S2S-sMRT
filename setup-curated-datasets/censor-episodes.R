@@ -50,21 +50,25 @@ for(i in 1:length(all_included_participants)){
         this_idx <- min(all_possible_idx)
         new_end_time <- v[this_idx]
         smalldat_episodes[j,"episode_newstart_hrts_local"] <- current_start_time
+        smalldat_episodes[j,"episode_newpeak_hrts_local"] <- current_peak_time
         smalldat_episodes[j,"episode_newend_hrts_local"] <- new_end_time
       }else{
         smalldat_episodes[j,"is_censored"] <- 0
         smalldat_episodes[j,"episode_newstart_hrts_local"] <- current_start_time
+        smalldat_episodes[j,"episode_newpeak_hrts_local"] <- current_peak_time
         smalldat_episodes[j,"episode_newend_hrts_local"] <- current_end_time
       }
     }else if(smalldat_episodes[j,"is_exceeds_5min"]==1 & smalldat_episodes[j,"is_exist_within_peak_and_end"]==0){
       # Censor at the peak (B)
       smalldat_episodes[j,"is_censored"] <- 1
       smalldat_episodes[j,"episode_newstart_hrts_local"] <- current_start_time
+      smalldat_episodes[j,"episode_newpeak_hrts_local"] <- current_peak_time
       smalldat_episodes[j,"episode_newend_hrts_local"] <- current_peak_time
     }else{
       # This covers the case when an episode does NOT exceed 5 minutes; no censoring occurs
       smalldat_episodes[j,"is_censored"] <- 0
       smalldat_episodes[j,"episode_newstart_hrts_local"] <- current_start_time
+      smalldat_episodes[j,"episode_newpeak_hrts_local"] <- current_peak_time
       smalldat_episodes[j,"episode_newend_hrts_local"] <- current_end_time
     }
   }

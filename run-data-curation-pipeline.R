@@ -14,20 +14,20 @@ if(TRUE){
 source("setup-curated-datasets/get-cstress-featurevec.R")
 rm(list = ls())
 
-# Extract raw data on micro-randomization
-source("setup-curated-datasets/get-randomization-data.R")
-rm(list = ls())
-
-# Extract raw data on stress episode classification
-source("setup-curated-datasets/get-stress-episode-data.R")
+# Extract start-of-day button press data
+source("setup-curated-datasets/get-start-day-button-press-data.R")
 rm(list = ls())
 
 # Extract predictions of activity detection algorithm
 source("setup-curated-datasets/get-activity-data.R")
 rm(list = ls())
 
-# Extract start-of-day button press data
-source("setup-curated-datasets/get-start-day-button-press-data.R")
+# Extract raw data on micro-randomization
+source("setup-curated-datasets/get-randomization-data.R")
+rm(list = ls())
+
+# Extract raw data on stress episode classification
+source("setup-curated-datasets/get-stress-episode-data.R")
 rm(list = ls())
 
 # -----------------------------------------------------------------------------
@@ -50,6 +50,8 @@ rm(list = ls())
 #   (ii) each row pertains to a participant-day-minute
 # -----------------------------------------------------------------------------
 
+# Note that the "skeleton" produced will not include those participants excluded
+#  from all data analysis, i.e., it will only include the remaining 49 participants
 source("setup-curated-datasets/create-skeleton.R")
 rm(list = ls())
 
@@ -58,8 +60,10 @@ rm(list = ls())
 # -----------------------------------------------------------------------------
 
 # Note that this script is where episodes (all types) for which peak
-#  is not within first day of mrt and last day of mrt are removed prior to
+# is not within first day of mrt and last day of mrt are removed prior to
 # all subsequent data processing steps
+# Note that the output produced by this script will not include those participants excluded
+# from all data analysis, i.e., it will only include the remaining 49 participants
 source("setup-curated-datasets/construct-episodes-physical-activity.R")
 rm(list = ls())
 

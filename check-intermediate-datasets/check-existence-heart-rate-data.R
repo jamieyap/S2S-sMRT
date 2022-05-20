@@ -35,32 +35,3 @@ summary1[["percent"]] <- format(summary1[["percent"]], digits=2, nsmall=2)
 
 write.csv(summary1, file.path("check-intermediate-datasets", "collect-output", "count_any_heart_rate_aggregate.csv"), row.names = FALSE, na = "")
 
-# -----------------------------------------------------------------------------
-# In how many episodes does heart rate data exist 
-# ... between start and peak
-# ... between peak and end
-# Disaggregate counts according to episode type
-# -----------------------------------------------------------------------------
-
-summary2 <- dat_heart_rate_indicator %>%
-  filter(is_exceeds_5min==1) %>%
-  group_by(new_episode_classification, 
-           is_exist_within_start_and_peak, 
-           is_exist_within_peak_and_end,
-           .groups = "keep") %>%
-  summarise(count = n()) %>%
-  select(-c(".groups")) %>%
-  arrange(desc(is_exist_within_peak_and_end), desc(is_exist_within_start_and_peak)) 
-
-summary2[["percent"]]<- summary2[["count"]]/sum(summary2[["count"]])*100
-summary2 <- rbind(summary2,
-                  c(is_exist_within_start_and_peak = NA, 
-                    is_exist_within_peak_and_end = NA, 
-                    count = sum(summary2[["count"]]), 
-                    percent = sum(summary2[["percent"]])))
-
-summary2[["percent"]] <- format(summary2[["percent"]], digits=2, nsmall=2)
-
-write.csv(summary2, file.path("check-intermediate-datasets", "collect-output", "count_any_heart_rate_disaggregate.csv"), row.names = FALSE, na = "")
-
-

@@ -31,6 +31,19 @@ dat_cleaned_episodes <- dat_cleaned_episodes %>%
   filter((episode_peak_hrts_local >= first_day_mrt) & (episode_peak_hrts_local <= last_day_mrt))
 
 # -----------------------------------------------------------------------------
+# Save intermediate output
+# -----------------------------------------------------------------------------
+
+dat_cleaned_episodes %>%
+  group_by(orig_episode_classification) %>%
+  summarise(n())
+
+# Rename data frame before saving
+dat_valid_episodes <- dat_cleaned_episodes
+
+save(dat_valid_episodes, file = file.path(path_staged_data, "dat_valid_episodes.RData"))
+
+# -----------------------------------------------------------------------------
 # Construct physical activity episodes
 # -----------------------------------------------------------------------------
 dat_cleaned_episodes$new_episode_classification <- dat_cleaned_episodes$orig_episode_classification

@@ -27,9 +27,10 @@ plot(-1,
      xlim = c(0, nrow(summarydat)+1), 
      ylim = c(0, max(summarydat$tot_episodes)),
      xlab = "",
-     ylab = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
-     main = "",
-     frame = FALSE)
+     ylab = "",
+     main = "Total No. of Episodes (gray) vs. No. of Censored Episodes (red)",
+     frame = FALSE,
+     cex.main = 1.5)
 axis(2, lwd = 5, cex.axis = 1.5)
 text(x = 1:3,
      y = par("usr")[3] - 0.15,
@@ -49,12 +50,12 @@ segments(x0 = summarydat$plot_id,
          y0 = rep(0,nrow(summarydat)),
          y1 = summarydat$num_censored,
          lwd = 20,
-         col = "cornflowerblue")
+         col = "firebrick1")
 text(x = 1:3 + 0.25, y = c(1500, 3700, 700), 
      c(paste(summarydat[["percent_censored"]][1], "%", sep=""), 
        paste(summarydat[["percent_censored"]][2], "%", sep=""), 
        paste(summarydat[["percent_censored"]][3], "%", sep="")), 
-     col = "skyblue4", cex = 2)
+     col = "firebrick1", cex = 2)
 
 dev.off()
 
@@ -68,7 +69,7 @@ summarydat <- dat_cleaned_episodes_after_more_censoring %>%
   summarise(tot_episodes = n(),
             num_censored = sum(is_censored)) %>%
   mutate(percent_censored = round(100*num_censored/tot_episodes, 0)) %>%
-  arrange(tot_episodes)
+  arrange(desc(tot_episodes))
 
 summarydat$plot_id <- 1:nrow(summarydat)
 
@@ -81,11 +82,12 @@ plot(-1,
      xlim = c(0, nrow(summarydat)), 
      ylim = c(0, max(summarydat$tot_episodes)),
      xlab = "Each vertical line represents one participant",
-     ylab = "Total No. of Episodes (gray) vs. No. of Censored Episodes (blue)",
-     main = paste("Note: Unknown episodes were not included in the counts.",
-                  "Only probably stressed, probably not stressed, and physically active episodes were included in the counts",
-                  sep="\n"),
-     frame = FALSE)
+     ylab = "",
+     main = paste("Total No. of Episodes (gray) vs. No. of Censored Episodes (red)",
+                  "No. of episode corresponding with 50% of a participants total episodes is marked by an asterisk (yellow)",
+                  sep = "\n"),
+     frame = FALSE,
+     cex.main = 1.5)
 axis(2, lwd = 5, cex.axis = 1.5)
 axis(1, at = c(1, 7*c(1,2,3,4,5,6,7)), labels = c(1, 7*c(1,2,3,4,5,6,7)), tick = TRUE, lwd = 0, lwd.ticks = 0, cex.axis = 1.5)
 segments(x0 = summarydat$plot_id, 
@@ -99,7 +101,8 @@ segments(x0 = summarydat$plot_id,
          y0 = rep(0,nrow(summarydat)),
          y1 = summarydat$num_censored,
          lwd = 20,
-         col = "cornflowerblue")
+         col = "firebrick1")
+points(summarydat$plot_id, round(summarydat$tot_episodes/2, 1), pch = 8, cex = 2, lwd = 3, col = "gold")
 
 dev.off()
 
@@ -116,11 +119,8 @@ dat_cleaned_episodes_after_more_censoring <- dat_cleaned_episodes_after_more_cen
 
 summarydat <- dat_cleaned_episodes_after_more_censoring %>%
   group_by(new_episode_classification) %>%
-  summarise(q0 = quantile(AC_mins, probs = 0),
-            q10 = quantile(AC_mins, probs = .10),
-            q25 = quantile(AC_mins, probs = .25),
+  summarise(tot = n(),
             q50 = quantile(AC_mins, probs = .50),
-            q75 = quantile(AC_mins, probs = .75),
             q90 = quantile(AC_mins, probs = .90),
             q100 = quantile(AC_mins, probs = 1)) %>%
   mutate(my_order = case_when(
@@ -129,19 +129,14 @@ summarydat <- dat_cleaned_episodes_after_more_censoring %>%
     new_episode_classification == "active" ~ 3,
     TRUE ~ NA_real_)) %>%
   arrange(my_order) %>%
-  select(-my_order)
+  select(-my_order) %>%
+  add_row(new_episode_classification = "tot",
+          tot = sum(.[["tot"]]),
+          q50 = NA_real_,
+          q90 = NA_real_,
+          q100 = NA_real_)
 
-q90_yes <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "yes"]
-q90_no <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "no"]
-q90_active <- summarydat[["q90"]][summarydat[["new_episode_classification"]] == "active"]
+colnames(summarydat) <- c("Episode Type", "No. of episodes", "Median", "90th percentile", "Max")
 
-summarydat[["q0"]] <- format(summarydat[["q0"]], nsmall=2, digits=2)
-summarydat[["q10"]] <- format(summarydat[["q10"]], nsmall=2, digits=2)
-summarydat[["q25"]] <- format(summarydat[["q25"]], nsmall=2, digits=2)
-summarydat[["q50"]] <- format(summarydat[["q50"]], nsmall=2, digits=2)
-summarydat[["q75"]] <- format(summarydat[["q75"]], nsmall=2, digits=2)
-summarydat[["q90"]] <- format(summarydat[["q90"]], nsmall=2, digits=2)
-summarydat[["q100"]] <- format(summarydat[["q100"]], nsmall=2, digits=2)
-
-write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "more_censored_ACmins_percentiles_by_episode_type.csv"), row.names = FALSE)
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "more_censored_ACmins_percentiles_by_episode_type.csv"), row.names = FALSE, na = "")
 

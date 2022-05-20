@@ -95,13 +95,18 @@ dat_all <- dat_all %>%
 dat_all <- dat_all %>% filter(episode_start_hrts_utc > ymd_hms("2000-01-01 00:00:00", tz = "UTC"))
 
 # Order rows
-dat_all <- dat_all %>% arrange(participant_id, date_local, episode_start_hrts_local, AB_secs)
+dat_all <- dat_all %>% arrange(participant_id, date_local, episode_start_hrts_local, AB_secs, AC_secs)
 
 # There are 34 episodes which have identical timestamps 
 # for the start (A) and peak (B) times, and only differ in their end times (C)
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc")])))
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])))
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc", "episode_end_hrts_utc")])))
+
+idx_start_only <- which(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc")]))
+idx_start_and_peak <- which(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")]))
+when_unequal <- sum(idx_start_only!=idx_start_and_peak)
+print(when_unequal)
 
 # Decision: Only take the episode with the shortest length of time between A and C.
 these_duplicates <- duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])

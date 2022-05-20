@@ -51,13 +51,26 @@ dat_masterlist <- dat_masterlist %>%
 # -----------------------------------------------------------------------------
 # Which participants contribute towards C1, C2, C3, C4?
 # -----------------------------------------------------------------------------
-dat_masterlist %>% filter(exclude_reason == "C1") %>% .[["participant_id"]]
-dat_masterlist %>% filter(exclude_reason == "C2") %>% .[["participant_id"]]
-dat_masterlist %>% filter(exclude_reason == "C3") %>% .[["participant_id"]]
-dat_masterlist %>% filter(exclude_reason == "C4") %>% .[["participant_id"]]
+ids_C1 <- dat_masterlist %>% filter(exclude_reason == "C1") %>% .[["participant_id"]]
+ids_C2 <- dat_masterlist %>% filter(exclude_reason == "C2") %>% .[["participant_id"]]
+ids_C3 <- dat_masterlist %>% filter(exclude_reason == "C3") %>% .[["participant_id"]]
+ids_C4 <- dat_masterlist %>% filter(exclude_reason == "C4") %>% .[["participant_id"]]
 
-# How many participants contribute toward C1, C2, C3, C4?
-table(dat_masterlist$exclude_reason)
+tabulate_by_exclusion_criterion <- data.frame(criterion = c("C1", "C2", "C3", "C4"),
+                                              num_participants = c(length(ids_C1), length(ids_C2), length(ids_C3), length(ids_C4)),
+                                              ids = c(capture.output(cat(as.character(ids_C1), sep=", ")),
+                                                      capture.output(cat(as.character(ids_C2), sep=", ")),
+                                                      capture.output(cat(as.character(ids_C3), sep=", ")),
+                                                      capture.output(cat(as.character(ids_C4), sep=", "))))
+
+tot_excl <- sum(tabulate_by_exclusion_criterion$num_participants)
+tabulate_by_exclusion_criterion <- tabulate_by_exclusion_criterion %>%
+  add_row(criterion = "Total", num_participants = tot_excl, ids = NA_character_)
+colnames(tabulate_by_exclusion_criterion) <- c("Criterion violated",
+                                               "No. of participants",
+                                               "Participant IDs")
+
+write.csv(tabulate_by_exclusion_criterion, file.path(path_staged_data, "tabulate_by_exclusion_criterion.csv"), row.names = FALSE, na = "")
 
 # -----------------------------------------------------------------------------
 # Identify participant ID's having at least 1 stress/not stress classification

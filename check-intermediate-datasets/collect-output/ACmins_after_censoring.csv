@@ -1,0 +1,5 @@
+"Episode Type","No. of episodes","Median time (in minutes) between A and C","90th percentile time (in minutes) between A and C","Max time (in minutes) between A and C"
+"yes",1074,8.00763333439827,15.991355000337,4116.00564999978
+"no",11606,7.99127499858538,17.0190416673819,808.995233333111
+"active",2515,9,18.8625400010744,74.9953666647275
+"tot",15195,,,
