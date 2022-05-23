@@ -7,29 +7,29 @@ source("paths.R")
 # -----------------------------------------------------------------------------
 # Load relevant datasets
 # -----------------------------------------------------------------------------
-load(file.path(path_staged_data, "dat_rand_for_treatment_effect_estimation.RData"))
+load(file.path(path_staged_data, "dat_matched_most_recent_classification.RData"))
 load(file.path(path_staged_data, "dat_minute_by_minute_classification.RData"))
 
 # -----------------------------------------------------------------------------
-# Transform dat_rand_for_treatment_effect_estimation and 
+# Transform dat_matched_most_recent_classification and 
 # dat_minute_by_minute_classification into a list, 
 # where each element of the list corresponds to a data frame 
 # containing data from only one participant.
 # -----------------------------------------------------------------------------
-all_participant_ids <- unique(dat_rand_for_treatment_effect_estimation[["participant_id"]])
+all_participant_ids <- unique(dat_matched_most_recent_classification[["participant_id"]])
 tot_participants <- length(all_participant_ids)
 list_by_participant <- list()
 
 for(i in seq_len(tot_participants)){
   current_participant <- all_participant_ids[i]
-  current_dat_rand_for_treatment_effect_estimation <- dat_rand_for_treatment_effect_estimation %>% filter(participant_id == current_participant)
+  current_dat_matched_most_recent_classification <- dat_matched_most_recent_classification %>% filter(participant_id == current_participant)
   current_dat_minute_by_minute_classification <- dat_minute_by_minute_classification %>% filter(participant_id == current_participant)
   
-  num_rand <- nrow(current_dat_rand_for_treatment_effect_estimation)
-  current_dat_rand_for_treatment_effect_estimation <- current_dat_rand_for_treatment_effect_estimation %>% mutate(trt_id = 1:num_rand)
+  num_rand <- nrow(current_dat_matched_most_recent_classification)
+  current_dat_matched_most_recent_classification <- current_dat_matched_most_recent_classification %>% mutate(trt_id = 1:num_rand)
   current_dat_minute_by_minute_classification <- current_dat_minute_by_minute_classification %>% mutate(trt_id = NA_real_)
   
-  curr_list <- list(current_dat_rand = current_dat_rand_for_treatment_effect_estimation,
+  curr_list <- list(current_dat_rand = current_dat_matched_most_recent_classification,
                     current_dat_classification = current_dat_minute_by_minute_classification)
   list_by_participant <- append(list_by_participant, list(curr_list))
 }

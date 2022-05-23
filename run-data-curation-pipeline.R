@@ -114,16 +114,13 @@ rm(list = ls())
 
 # Set condition to TRUE when running this script for the first time
 if(TRUE){
-  source("check-intermediate-datasets/check-stratification-variable.R")
+  source("check-intermediate-datasets/check-availability.R")
   rm(list = ls())
 }
 
-source("setup-curated-datasets/subset-randomizations-for-treatment-effect-estimation.R")
-rm(list = ls())
-
 # Set condition to TRUE when running this script for the first time
 if(TRUE){
-  source("check-intermediate-datasets/check-randomization-probabilities.R")
+  source("check-intermediate-datasets/check-stratification-variable.R")
   rm(list = ls())
 }
 
@@ -134,9 +131,3 @@ if(TRUE){
 source("setup-curated-datasets/link.R")
 rm(list = ls())
 
-# -----------------------------------------------------------------------------
-# Create indicator for availability
-# -----------------------------------------------------------------------------
-
-source("setup-curated-datasets/construct-availability.R")
-rm(list = ls())
