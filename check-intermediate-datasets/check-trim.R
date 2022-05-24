@@ -56,6 +56,44 @@ dat <- dat %>%
 # Summary statistics
 # -----------------------------------------------------------------------------
 
+dat_percentiles <- dat %>%
+  filter(!(avail_aleph == 0)) %>%
+  group_by(avail_aleph, most_recent_classification, .groups = "keep") %>%
+  summarise(tot = n(),
+            q0 = quantile(probability, 0),
+            q10 = quantile(probability, .10),
+            q50 = quantile(probability, .50),
+            q90 = quantile(probability, .90),
+            q100 = quantile(probability, 1)) %>%
+  select(-".groups")
+  
+dat_percentiles <- as.data.frame(dat_percentiles)
+dat_percentiles <- dat_percentiles %>% add_row(tot = sum(.[["tot"]]))
+write.csv(dat_percentiles, file.path("check-intermediate-datasets", "collect-output", "trim", "dat_prob_when_aleph_avail.csv"), row.names = FALSE, na = "")
+
+# -----------------------------------------------------------------------------
+# Summary statistics
+# -----------------------------------------------------------------------------
+
+dat_percentiles <- dat %>%
+  filter(!(avail_omega == 0)) %>%
+  group_by(avail_omega, most_recent_classification, .groups = "keep") %>%
+  summarise(tot = n(),
+            q0 = quantile(probability, 0),
+            q10 = quantile(probability, .10),
+            q50 = quantile(probability, .50),
+            q90 = quantile(probability, .90),
+            q100 = quantile(probability, 1)) %>%
+  select(-".groups")
+
+dat_percentiles <- as.data.frame(dat_percentiles)
+dat_percentiles <- dat_percentiles %>% add_row(tot = sum(.[["tot"]]))
+write.csv(dat_percentiles, file.path("check-intermediate-datasets", "collect-output", "trim", "dat_prob_when_omega_avail.csv"), row.names = FALSE, na = "")
+
+# -----------------------------------------------------------------------------
+# Summary statistics
+# -----------------------------------------------------------------------------
+
 dat_crosstab <- dat %>%
   group_by(avail_aleph, avail_omega, .groups = "keep") %>%
   summarise(tot = n()) %>%
@@ -66,5 +104,22 @@ dat_crosstab <- as.data.frame(dat_crosstab)
 dat_crosstab <- dat_crosstab %>% add_row(tot = sum(.[["tot"]]))
 
 write.csv(dat_crosstab, file.path("check-intermediate-datasets", "collect-output", "trim", "dat_crosstab_avail.csv"), row.names = FALSE, na = "")
+
+# -----------------------------------------------------------------------------
+# Summary statistics
+# -----------------------------------------------------------------------------
+
+dat_crosstab <- dat %>%
+  group_by(avail_aleph, avail_omega, most_recent_classification, .groups = "keep") %>%
+  summarise(tot = n()) %>%
+  select(-".groups") %>%
+  filter(!(avail_aleph == 0 & avail_omega == 0))
+
+dat_crosstab <- as.data.frame(dat_crosstab)
+dat_crosstab <- dat_crosstab %>% add_row(tot = sum(.[["tot"]]))
+
+write.csv(dat_crosstab, file.path("check-intermediate-datasets", "collect-output", "trim", "dat_crosstab_avail_by_class.csv"), row.names = FALSE, na = "")
+
+
 
 
