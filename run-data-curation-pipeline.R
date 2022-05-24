@@ -105,8 +105,7 @@ rm(list = ls())
 
 # -----------------------------------------------------------------------------
 # Merge randomization assignment data with minute-by-minute episode
-# classification data and identify those micro-randomizations which
-# will be used to estimate the treatment effect
+# classification data; begin creating the stratification variable
 # -----------------------------------------------------------------------------
 
 source("setup-curated-datasets/construct-stratification-variable.R")
@@ -125,9 +124,28 @@ if(TRUE){
 }
 
 # -----------------------------------------------------------------------------
-# Link randomization assignment to the minute-by-minute classification
+# Merge randomization assignment data with minutes between first day
+# and last day of the MRT
 # -----------------------------------------------------------------------------
 
 source("setup-curated-datasets/link.R")
 rm(list = ls())
+
+# -----------------------------------------------------------------------------
+# Check trimming of probabilities
+# -----------------------------------------------------------------------------
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-trim.R")
+  rm(list = ls())
+}
+
+# -----------------------------------------------------------------------------
+# Complete construction of the variables used for data analysis
+# -----------------------------------------------------------------------------
+
+source("setup-curated-datasets/construct-data-for-analysis.R")
+rm(list = ls())
+
 
