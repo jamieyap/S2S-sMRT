@@ -39,7 +39,40 @@ write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output",
 
 # -----------------------------------------------------------------------------
 # Number of episodes for which the number of minutes elapsed between B and C is 
-# greater than 5 minutes
+# greater than 5 minutes; and less than or equal to 5 minutes
+# -----------------------------------------------------------------------------
+
+summarydat <- dat_full_episodes %>%
+  mutate(BC_mins = as.numeric(difftime(time1 = episode_end_hrts_local, 
+                                       time2 = episode_peak_hrts_local, 
+                                       units = "mins"))) %>%
+  group_by(new_episode_classification) %>%
+  summarise(cnt_less_5 = sum(BC_mins<=5),
+            cnt_more_5 = sum(BC_mins>5)) %>%
+  mutate(my_order = case_when(
+    new_episode_classification == "yes" ~ 1,
+    new_episode_classification == "no" ~ 2,
+    new_episode_classification == "active" ~ 3,
+    new_episode_classification == "unknown" ~ 4,
+    TRUE ~ NA_real_))  %>%
+  filter(new_episode_classification != "unknown") %>%
+  arrange(my_order) %>%
+  select(-my_order) %>%
+  add_row(new_episode_classification = "tot",
+          cnt_less_5 = sum(.[["cnt_less_5"]]),
+          cnt_more_5 = sum(.[["cnt_more_5"]]))
+
+colnames(summarydat) <- c("Episode Type", 
+                          "No. of episodes for which the duration of time between B and C is less than 5 minutes", 
+                          "No. of episodes for which the duration of time between B and C is greater than 5 minutes")
+print(summarydat)
+
+write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output", "count_within_5_before_censoring.csv"), row.names = FALSE, na = "")
+
+# -----------------------------------------------------------------------------
+# Number of episodes for which the number of minutes elapsed between B and C is 
+# greater than 5 minutes; and inaddition, among these episodes, calculate
+# percentiles for the duration of time between B and C
 # -----------------------------------------------------------------------------
 
 summarydat <- dat_full_episodes %>%

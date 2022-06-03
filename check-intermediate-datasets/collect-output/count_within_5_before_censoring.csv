@@ -1,0 +1,5 @@
+"Episode Type","No. of episodes for which the duration of time between B and C is less than 5 minutes","No. of episodes for which the duration of time between B and C is greater than 5 minutes"
+"yes",396,678
+"no",6600,5006
+"active",1129,1386
+"tot",8125,7070
