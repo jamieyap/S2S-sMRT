@@ -88,6 +88,31 @@ dat_all <- dat_all %>%
          BC_hours = BC_mins/60)
 
 # -----------------------------------------------------------------------------
+# Provide plain-English labels to episode classification
+# See lines 296-303 here:
+# https://github.com/MD2Korg/stream-processor/blob/master/src/main/java/md2k/mcerebrum/cstress/features/StressEpisodeClassification.java
+# -----------------------------------------------------------------------------
+
+dat_all <- dat_all %>%
+  mutate(orig_episode_classification = NA_character_) %>%
+  mutate(orig_episode_classification = case_when(
+    Stress_Episode_Classification == 0 ~ "no",  # Probably not stressed episodes
+    Stress_Episode_Classification == 2 ~ "yes",  # Probably stressed episodes
+    Stress_Episode_Classification == 3 ~ "unknown",  # Unknown episodes
+    TRUE ~ NA_character_
+  ))
+
+# Check: How many episodes per category; use label in raw data (Stress_Episode_Classification)
+table(dat_all$Stress_Episode_Classification)
+
+# Check: How many episodes per category; use plain English labels
+table(dat_all$orig_episode_classification)
+
+# Save here for calculating summary statistics associated with this intermediate dataset
+unzipped_dat_stress_episodes <- dat_all
+save(unzipped_dat_stress_episodes, file = file.path(path_staged_data, "unzipped_dat_stress_episodes.RData"))
+
+# -----------------------------------------------------------------------------
 # Perform some data cleaning steps
 # -----------------------------------------------------------------------------
 
@@ -97,12 +122,13 @@ dat_all <- dat_all %>% filter(episode_start_hrts_utc > ymd_hms("2000-01-01 00:00
 # Order rows
 dat_all <- dat_all %>% arrange(participant_id, date_local, episode_start_hrts_local, AB_secs, AC_secs)
 
-# There are 34 episodes which have identical timestamps 
+# There are episodes which have identical timestamps 
 # for the start (A) and peak (B) times, and only differ in their end times (C)
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc")])))
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])))
 print(sum(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc", "episode_end_hrts_utc")])))
 
+# Determine whether de-duplication should be based on the start or both start and peak
 idx_start_only <- which(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc")]))
 idx_start_and_peak <- which(duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")]))
 when_unequal <- sum(idx_start_only!=idx_start_and_peak)
@@ -112,21 +138,11 @@ print(when_unequal)
 these_duplicates <- duplicated(dat_all[, c("participant_id", "episode_start_hrts_utc", "episode_peak_hrts_utc")])
 parsed_dat_stress_episodes <- dat_all[!these_duplicates,]
 
-# Check: How many episodes per category
+# Check: How many episodes per category; use label in raw data (Stress_Episode_Classification)
 table(parsed_dat_stress_episodes$Stress_Episode_Classification)
 
-# -----------------------------------------------------------------------------
-# Provide plain-English labels to episode classification
-# -----------------------------------------------------------------------------
-
-parsed_dat_stress_episodes <- parsed_dat_stress_episodes %>%
-  mutate(orig_episode_classification = NA_character_) %>%
-  mutate(orig_episode_classification = case_when(
-    Stress_Episode_Classification == 0 ~ "no",  # Probably not stressed episodes
-    Stress_Episode_Classification == 2 ~ "yes",  # Probably stressed episodes
-    Stress_Episode_Classification == 3 ~ "unknown",  # Unknown episodes
-    TRUE ~ NA_character_
-  ))
+# Check: How many episodes per category; use plain English labels
+table(parsed_dat_stress_episodes$orig_episode_classification)
 
 # -----------------------------------------------------------------------------
 # Prepare to save parsed data to an RData file in preparation for

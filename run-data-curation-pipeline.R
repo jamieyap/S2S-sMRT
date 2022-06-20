@@ -45,6 +45,17 @@ source("setup-curated-datasets/create-masterlist-continued.R")
 rm(list = ls())
 
 # -----------------------------------------------------------------------------
+# Calculate summary statistics using unzipped stress data among those 
+# participants who were not excluded due to C1, C2, C3, C4
+# -----------------------------------------------------------------------------
+
+# Set condition to TRUE when running this script for the first time
+if(TRUE){
+  source("check-intermediate-datasets/check-unzipped-stress-data.R")
+  rm(list = ls())
+}
+
+# -----------------------------------------------------------------------------
 # Create two data frames in long format 
 #   (i) each row pertains to a participant-day
 #   (ii) each row pertains to a participant-day-minute
