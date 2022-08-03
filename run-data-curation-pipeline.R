@@ -153,10 +153,20 @@ if(TRUE){
 }
 
 # -----------------------------------------------------------------------------
-# Complete construction of the variables used for data analysis
+# Complete construction of the variables used for basic data analysis
 # -----------------------------------------------------------------------------
 
 source("setup-curated-datasets/construct-data-for-analysis.R")
 rm(list = ls())
+
+# -----------------------------------------------------------------------------
+# Include more variables
+# -----------------------------------------------------------------------------
+
+source("setup-curated-datasets/construct-predictors.R")
+rm(list = ls())
+
+
+
 
 
