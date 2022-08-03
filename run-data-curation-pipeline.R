@@ -160,13 +160,14 @@ source("setup-curated-datasets/construct-data-for-analysis.R")
 rm(list = ls())
 
 # -----------------------------------------------------------------------------
-# Include more variables
+# Construct more variables
 # -----------------------------------------------------------------------------
 
 source("setup-curated-datasets/construct-predictors.R")
 rm(list = ls())
 
-
+source("setup-curated-datasets/construct-engagement-indicators.R")
+rm(list = ls())
 
 
 
