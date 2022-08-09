@@ -163,11 +163,9 @@ rm(list = ls())
 # Construct more variables
 # -----------------------------------------------------------------------------
 
-source("setup-curated-datasets/construct-predictors.R")
-rm(list = ls())
-
 source("setup-curated-datasets/construct-engagement-indicators.R")
 rm(list = ls())
 
-
+source("setup-curated-datasets/construct-predictors.R")
+rm(list = ls())
 

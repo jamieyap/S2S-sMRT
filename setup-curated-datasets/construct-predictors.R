@@ -29,7 +29,6 @@ dat_demographics <- dat_demographics %>%
   select(record_id, sex) %>%
   rename(participant_id = record_id)
 
-
 # -----------------------------------------------------------------------------
 # Merge and save
 # -----------------------------------------------------------------------------
