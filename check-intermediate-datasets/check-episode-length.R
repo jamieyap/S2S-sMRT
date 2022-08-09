@@ -71,7 +71,7 @@ write.csv(summarydat, file.path("check-intermediate-datasets", "collect-output",
 
 # -----------------------------------------------------------------------------
 # Number of episodes for which the number of minutes elapsed between B and C is 
-# greater than 5 minutes; and inaddition, among these episodes, calculate
+# greater than 5 minutes; and in addition, among these episodes, calculate
 # percentiles for the duration of time between B and C
 # -----------------------------------------------------------------------------
 
@@ -79,6 +79,8 @@ summarydat <- dat_full_episodes %>%
   mutate(BC_mins = as.numeric(difftime(time1 = episode_end_hrts_local, 
                                        time2 = episode_peak_hrts_local, 
                                        units = "mins"))) %>%
+  mutate(is_exceeds_5min = if_else(BC_mins > 5, 1, 0)) %>%
+  filter(is_exceeds_5min==1) %>%
   group_by(new_episode_classification) %>%
   summarise(cnt5 = sum(BC_mins>5),
             q50 = quantile(BC_mins, probs = .50),
