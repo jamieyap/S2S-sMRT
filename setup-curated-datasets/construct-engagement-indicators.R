@@ -107,6 +107,7 @@ dat_mrt_days <- do.call(rbind, list_all)
 # Merge visit attendance data with data on other indicators of engagement
 # -----------------------------------------------------------------------------
 dat_engagement_indicators <- left_join(x = dat_mrt_days, y = dat_visit_attendance, by = "participant_id")
+dat_engagement_indicators <- dat_engagement_indicators %>% select(-first_day_mrt, -last_day_mrt)
 
 # -----------------------------------------------------------------------------
 # Save data
